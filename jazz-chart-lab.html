@@ -1364,11 +1364,7 @@
     async function loadAudioSample(audioContext, url) {
       const cache = sampleBufferCache(audioContext);
       if (!cache.has(url)) {
-        const loading = fetch(url)
-          .then(response => {
-            if (!response.ok) throw new Error(`Could not load audio sample: ${url}`);
-            return response.arrayBuffer();
-          })
+        const loading = fetchAudioSample(url)
           .then(data => audioContext.decodeAudioData(data));
         cache.set(url, loading);
       }
@@ -1378,12 +1374,35 @@
         return buffer;
       } catch (error) {
         cache.delete(url);
-        throw new Error(`Could not decode audio sample ${url}: ${error.message || error}`);
+        throw new Error(`Could not load audio sample ${url}: ${error.message || error}`);
       }
     }
 
+    async function fetchAudioSample(url) {
+      let lastError = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const response = await fetch(url, { cache: attempt ? "reload" : "force-cache" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return await response.arrayBuffer();
+        } catch (error) {
+          lastError = error;
+          if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 180 * (attempt + 1)));
+        }
+      }
+      throw new Error(`Could not fetch ${url}: ${lastError?.message || lastError}`);
+    }
+
     async function loadAudioSamplesInOrder(audioContext, urls) {
-      for (const url of urls) await loadAudioSample(audioContext, url);
+      const failures = [];
+      for (const url of urls) {
+        try {
+          await loadAudioSample(audioContext, url);
+        } catch (error) {
+          failures.push(error);
+        }
+      }
+      return failures;
     }
 
     function closestMappedSample(midi, samples) {
@@ -1400,6 +1419,15 @@
       return closestMappedSample(midi, fingerBassSamples);
     }
 
+    function loadedMappedSample(midi, samples, audioContext) {
+      const cache = sampleBufferCache(audioContext);
+      const loaded = samples.filter(sample => {
+        const value = cache.get(sample.url);
+        return value && typeof value.then !== "function";
+      });
+      return closestMappedSample(midi, loaded.length ? loaded : samples);
+    }
+
     async function prepareSalamanderPiano(audioContext) {
       const requiredUrls = new Set();
       bars.forEach((bar, barIndex) => {
@@ -1409,7 +1437,7 @@
           });
         });
       });
-      await loadAudioSamplesInOrder(audioContext, requiredUrls);
+      return loadAudioSamplesInOrder(audioContext, requiredUrls);
     }
 
     async function prepareFingerBass(audioContext) {
@@ -1420,19 +1448,19 @@
           if (midi !== null) requiredUrls.add(fingerBassSampleFor(midi).url);
         });
       });
-      await loadAudioSamplesInOrder(audioContext, requiredUrls);
+      return loadAudioSamplesInOrder(audioContext, requiredUrls);
     }
 
     async function prepareMuldjordDrums(audioContext) {
       const urls = Object.values(muldjordDrumSamples)
         .flat()
         .map(name => `audio/muldjord-drums/${name}`);
-      await loadAudioSamplesInOrder(audioContext, urls);
+      return loadAudioSamplesInOrder(audioContext, urls);
     }
 
     function playSalamanderPiano(time, midi, duration, volume) {
       const c = ctx();
-      const sample = salamanderSampleFor(midi);
+      const sample = loadedMappedSample(midi, salamanderSamples, c);
       const buffer = sampleBufferCache(c).get(sample.url);
       if (!buffer || typeof buffer.then === "function") return false;
       const source = c.createBufferSource();
@@ -1453,7 +1481,7 @@
 
     function playFingerBass(time, midi, duration, volume) {
       const c = ctx();
-      const sample = fingerBassSampleFor(midi);
+      const sample = loadedMappedSample(midi, fingerBassSamples, c);
       const buffer = sampleBufferCache(c).get(sample.url);
       if (!buffer || typeof buffer.then === "function") return false;
       const source = c.createBufferSource();
@@ -1475,8 +1503,14 @@
     function playMuldjordDrum(kind, time, volume) {
       const c = ctx();
       const names = muldjordDrumSamples[kind];
-      const name = names[Math.floor(Math.random() * names.length)];
-      const buffer = sampleBufferCache(c).get(`audio/muldjord-drums/${name}`);
+      const cache = sampleBufferCache(c);
+      const loadedNames = names.filter(name => {
+        const value = cache.get(`audio/muldjord-drums/${name}`);
+        return value && typeof value.then !== "function";
+      });
+      const availableNames = loadedNames.length ? loadedNames : names;
+      const name = availableNames[Math.floor(Math.random() * availableNames.length)];
+      const buffer = cache.get(`audio/muldjord-drums/${name}`);
       if (!buffer || typeof buffer.then === "function") return false;
       const source = c.createBufferSource();
       const gain = c.createGain();
@@ -1499,17 +1533,19 @@
     }
 
     async function prepareSelectedSamples(audioContext) {
-      if (els.pianoTone.value === "sampleGrand") await prepareSalamanderPiano(audioContext);
-      if (els.bassTone.value === "sampleElectric") await prepareFingerBass(audioContext);
-      if (els.drumTone.value === "sampleStudio") await prepareMuldjordDrums(audioContext);
+      const failures = [];
+      if (els.pianoTone.value === "sampleGrand") failures.push(...await prepareSalamanderPiano(audioContext));
+      if (els.bassTone.value === "sampleElectric") failures.push(...await prepareFingerBass(audioContext));
+      if (els.drumTone.value === "sampleStudio") failures.push(...await prepareMuldjordDrums(audioContext));
       const keys = selectedSamplePresetKeys();
-      if (!keys.length) return;
+      if (!keys.length) return failures;
       const previous = preparedSampleContexts.get(audioContext) || new Set();
       const missing = keys.filter(key => !previous.has(key));
-      if (!missing.length) return;
+      if (!missing.length) return failures;
       await Promise.all(missing.map(key => prepareSamplePreset(key, audioContext)));
       missing.forEach(key => previous.add(key));
       preparedSampleContexts.set(audioContext, previous);
+      return failures;
     }
 
     function playSamplePreset(key, time, midi, duration, volume) {
@@ -2026,7 +2062,10 @@
       createAudio();
       await audioCtx.resume();
       try {
-        await prepareSelectedSamples(audioCtx);
+        const failures = await prepareSelectedSamples(audioCtx);
+        if (failures.length) {
+          showMessage(`Some sample files could not be loaded. Nearest available samples will play. First issue: ${failures[0].message}`, true);
+        }
       } catch (error) {
         showMessage(`Sample sound failed to load: ${error.message || error}. Using the built-in fallback sound.`, true);
       }
