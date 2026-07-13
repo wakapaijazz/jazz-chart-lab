@@ -1,0 +1,535 @@
+{
+  "name": "Night Birds",
+  "chart": "[4/4] | <Intro> C-7 | C-6 | Ab/C | C- | Ab/C | F-7 | D7 G7 | C- |\n|: <A> C- | C- | AbM7 | AbM7 |\nF-7 | D-7/G | C- | [1] C- :| [2] C7 | \n| <B1> F-7 | Bb7 | EbM7 | AbM7 |\nD7(+9) | G7sus4 | C- | C- :|\n[3] C- :| [4] C7 | \n| <B2> F-7 | Bb7 | EbM7 | AbM7 |\nD7 | G7 | C- | C7 |\n| <B3> F-7 | Bb7 | EbM7 | AbM7 |\nD7 | G7 | C- | C- |\n|: <C> Bb7sus4 | EbM7 | Bb7sus4 | EbM7  | AbM7 | G-7 | F-7 | G7sus4 :|",
+  "tempo": 122,
+  "style": "sixteenth",
+  "meter": "4/4",
+  "pianoTone": "warmLong",
+  "bassTone": "sustain",
+  "bassStyle": "twoFeel",
+  "drumTone": "dry",
+  "toggles": {
+    "metronome": true,
+    "drums": true,
+    "bass": true,
+    "piano": true
+  },
+  "voicingOverrides": {
+    "0:0": [
+      {
+        "id": 0,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 70,
+        "muted": false
+      }
+    ],
+    "1:0": [
+      {
+        "id": 0,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 69,
+        "muted": false
+      }
+    ],
+    "2:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "3:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "4:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "6:0": [
+      {
+        "id": 0,
+        "midi": 66,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 72,
+        "muted": false
+      }
+    ],
+    "6:1": [
+      {
+        "id": 0,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 77,
+        "muted": false
+      }
+    ],
+    "7:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "8:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "9:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "10:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "11:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "12:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "14:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "15:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "16:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "17:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "18:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "19:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "20:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "22:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "23:0": [
+      {
+        "id": 0,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 70,
+        "muted": false
+      }
+    ],
+    "24:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "25:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 77,
+        "muted": false
+      }
+    ],
+    "26:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 70,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 74,
+        "muted": false
+      }
+    ],
+    "27:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "30:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "31:0": [
+      {
+        "id": 0,
+        "midi": 60,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      }
+    ],
+    "5:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "13:0": [
+      {
+        "id": 0,
+        "midi": 62,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 65,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 72,
+        "muted": false
+      }
+    ]
+  },
+  "savedAt": "2026-07-13T08:01:23.568Z"
+}
