@@ -1,0 +1,8 @@
+{
+  "charts": [
+    {
+      "name": "Starter Chart",
+      "file": "starter-chart.json"
+    }
+  ]
+}

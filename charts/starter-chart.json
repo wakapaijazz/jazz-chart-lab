@@ -1,0 +1,18 @@
+{
+  "name": "Starter Chart",
+  "chart": "[4/4] | Cmaj7 | Am7 D7 | G7b9#11 | C6/9 |\n[3/4] | Em7 A7 | Dm7 G7 | Cmaj9/E | Cmaj7 |",
+  "tempo": 140,
+  "style": "swing",
+  "meter": "4/4",
+  "pianoTone": "warm",
+  "bassTone": "upright",
+  "bassStyle": "walking",
+  "drumTone": "dry",
+  "toggles": {
+    "metronome": true,
+    "drums": true,
+    "bass": true,
+    "piano": true
+  },
+  "voicingOverrides": {}
+}

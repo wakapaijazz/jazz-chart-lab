@@ -543,7 +543,7 @@
             </div>
           </div>
           <div class="control wide">
-            <label for="savedCharts">Saved Charts</label>
+            <label for="savedCharts">Charts</label>
             <select id="savedCharts"></select>
             <div class="mini-buttons">
               <button class="utility" id="loadBtn">Load</button>
@@ -641,7 +641,9 @@
     const lookahead = 25;
     const scheduleAheadTime = 0.12;
     const storageKey = "jazz-chart-lab:saved-charts:v1";
+    const bundledChartIndexUrl = "charts/index.json";
     const ticksPerQuarter = 480;
+    const bundledCharts = new Map();
 
     const NOTE_TO_SEMITONE = {
       C: 0, "C#": 1, Db: 1,
@@ -1890,20 +1892,27 @@
     }
 
     function updateSavedList() {
-      const data = getSavedCharts();
-      const names = Object.keys(data).sort((a, b) => a.localeCompare(b));
+      const localCharts = getSavedCharts();
+      const localNames = Object.keys(localCharts).sort((a, b) => a.localeCompare(b));
+      const bundledNames = [...bundledCharts.keys()].sort((a, b) => a.localeCompare(b));
       els.savedCharts.innerHTML = "";
-      if (!names.length) {
+      if (!localNames.length && !bundledNames.length) {
         const option = document.createElement("option");
         option.value = "";
-        option.textContent = "No saved charts";
+        option.textContent = "No local or bundled charts";
         els.savedCharts.appendChild(option);
         return;
       }
-      names.forEach(name => {
+      localNames.forEach(name => {
         const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
+        option.value = `local:${name}`;
+        option.textContent = `Local: ${name}`;
+        els.savedCharts.appendChild(option);
+      });
+      bundledNames.forEach(name => {
+        const option = document.createElement("option");
+        option.value = `bundled:${name}`;
+        option.textContent = `Built-in: ${name}`;
         els.savedCharts.appendChild(option);
       });
     }
@@ -1914,26 +1923,53 @@
       saved[data.name] = data;
       setSavedCharts(saved);
       updateSavedList();
-      els.savedCharts.value = data.name;
+      els.savedCharts.value = `local:${data.name}`;
       showMessage(`Saved "${data.name}".`);
     }
 
     function loadChart() {
-      const name = els.savedCharts.value;
-      const saved = getSavedCharts();
-      if (!name || !saved[name]) return showMessage("Choose a saved chart first.", true);
-      applyChartData(saved[name]);
+      const [source, ...nameParts] = els.savedCharts.value.split(":");
+      const name = nameParts.join(":");
+      const data = source === "bundled"
+        ? bundledCharts.get(name)
+        : getSavedCharts()[name];
+      if (!name || !data) return showMessage("Choose a chart first.", true);
+      applyChartData(data);
       showMessage(`Loaded "${name}".`);
     }
 
     function deleteChart() {
-      const name = els.savedCharts.value;
+      const [source, ...nameParts] = els.savedCharts.value.split(":");
+      const name = nameParts.join(":");
+      if (source === "bundled") return showMessage("Built-in charts are part of this site and cannot be deleted here.", true);
       const saved = getSavedCharts();
-      if (!name || !saved[name]) return showMessage("Choose a saved chart first.", true);
+      if (!name || !saved[name]) return showMessage("Choose a local chart first.", true);
       delete saved[name];
       setSavedCharts(saved);
       updateSavedList();
       showMessage(`Deleted "${name}".`);
+    }
+
+    async function loadBundledCharts() {
+      try {
+        const indexResponse = await fetch(bundledChartIndexUrl, { cache: "no-store" });
+        if (!indexResponse.ok) throw new Error(`index request failed (${indexResponse.status})`);
+        const index = await indexResponse.json();
+        if (!Array.isArray(index.charts)) throw new Error("index must contain a charts array");
+        const results = await Promise.all(index.charts.map(async entry => {
+          if (!entry || typeof entry.file !== "string") return null;
+          const response = await fetch(`charts/${entry.file}`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`${entry.file} request failed (${response.status})`);
+          const data = await response.json();
+          if (!data || typeof data.chart !== "string") throw new Error(`${entry.file} is not a chart JSON file`);
+          return [entry.name || data.name || entry.file.replace(/\.json$/i, ""), data];
+        }));
+        results.filter(Boolean).forEach(([name, data]) => bundledCharts.set(name, data));
+        updateSavedList();
+      } catch (error) {
+        // Loading from file:// or an incomplete deployment should not block the app.
+        console.warn("Bundled charts could not be loaded:", error);
+      }
     }
 
     function downloadBlob(blob, filename) {
@@ -2273,6 +2309,7 @@
 
     updateSavedList();
     refreshChart();
+    loadBundledCharts();
   </script>
 </body>
 </html>
