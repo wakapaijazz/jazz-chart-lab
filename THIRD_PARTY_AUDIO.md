@@ -1,9 +1,13 @@
 # Third-Party Audio
 
-Jazz Chart Lab can load the following sample presets on demand when a sampled tone is selected.
-The audio data is fetched from the WebAudioFont public preset endpoint and is not stored in this repository.
+Jazz Chart Lab includes selected Salamander Grand Piano MP3 samples and can load the
+following additional sample presets on demand when a sampled tone is selected.
 
-- GeneralUser GS: sampled grand piano, acoustic bass, and fingered electric bass.
+- Salamander Grand Piano V3: 15 pitch samples for the `Salamander Grand Piano` tone.
+  Source: https://archive.org/details/SalamanderGrandPianoV3
+  Author: Alexander Holm.
+  License: Creative Commons Attribution 3.0 Unported.
+- GeneralUser GS: sampled acoustic bass and fingered electric bass.
   Source: https://github.com/mrbumpy409/GeneralUser-GS
   License: GeneralUser GS License v2.0.
 - FluidR3 GM: sampled kick, snare, closed hi-hat, and crash cymbal.
