@@ -3,15 +3,23 @@
 Jazz Chart Lab includes selected Salamander Grand Piano MP3 samples and can load the
 following additional sample presets on demand when a sampled tone is selected.
 
-- Salamander Grand Piano V3: 15 pitch samples for the `Salamander Grand Piano` tone.
+- Salamander Grand Piano V3: 30 pitch samples (roughly every minor third) for the
+  `Salamander Grand Piano` tone.
   Source: https://archive.org/details/SalamanderGrandPianoV3
   Author: Alexander Holm.
   License: Creative Commons Attribution 3.0 Unported.
-- GeneralUser GS: sampled acoustic bass and fingered electric bass.
+- Finger Bass YR: selected fingered electric bass samples for the `Finger Bass YR` tone.
+  Source: https://freepats.zenvoid.org/ElectricGuitar/clean-electric-bass.html
+  Author: Andrea Biasior.
+  License: CC0 1.0 Universal.
+- MuldjordKit: selected kick, snare, closed hi-hat, and crash samples for the
+  `Muldjord Studio Kit` tone.
+  Source: https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html
+  Recorded by Lars Muldjord; assembled for FreePats by Roberto.
+  License: Creative Commons Attribution 4.0 International.
+- GeneralUser GS: sampled acoustic bass.
   Source: https://github.com/mrbumpy409/GeneralUser-GS
   License: GeneralUser GS License v2.0.
-- FluidR3 GM: sampled kick, snare, closed hi-hat, and crash cymbal.
-  License: Creative Commons licensed SoundFont, as documented by FluidSynth.
 - WebAudioFontPlayer: browser sample playback engine.
   Source: https://surikov.github.io/webaudiofont/
   License: GPL-3.0-or-later.

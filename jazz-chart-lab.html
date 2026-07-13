@@ -493,7 +493,7 @@
               <option value="electro">Electronic</option>
               <option value="rock">Rock Kit</option>
               <option value="arena">Arena Kit</option>
-              <option value="sampleStudio">Sampled Studio Kit</option>
+              <option value="sampleStudio">Muldjord Studio Kit</option>
               <option value="click">Click Only</option>
             </select>
           </div>
@@ -505,7 +505,7 @@
               <option value="electric">Electric</option>
               <option value="electricLong">Electric Long</option>
               <option value="sampleUpright">Sampled Acoustic Bass</option>
-              <option value="sampleElectric">Sampled Electric Bass</option>
+              <option value="sampleElectric">Finger Bass YR</option>
               <option value="fretless">Fretless Bass</option>
               <option value="synth">Synth Bass</option>
               <option value="sustain">Sustained Bass</option>
@@ -657,33 +657,28 @@
       bassAcoustic: {
         url: "https://surikov.github.io/webaudiofontdata/sound/0320_GeneralUserGS_sf2_file.js",
         variable: "_tone_0320_GeneralUserGS_sf2_file"
-      },
-      bassElectric: {
-        url: "https://surikov.github.io/webaudiofontdata/sound/0330_GeneralUserGS_sf2_file.js",
-        variable: "_tone_0330_GeneralUserGS_sf2_file"
-      },
-      drumKick: {
-        url: "https://surikov.github.io/webaudiofontdata/sound/12836_0_FluidR3_GM_sf2_file.js",
-        variable: "_drum_36_0_FluidR3_GM_sf2_file"
-      },
-      drumSnare: {
-        url: "https://surikov.github.io/webaudiofontdata/sound/12838_0_FluidR3_GM_sf2_file.js",
-        variable: "_drum_38_0_FluidR3_GM_sf2_file"
-      },
-      drumHat: {
-        url: "https://surikov.github.io/webaudiofontdata/sound/12842_0_FluidR3_GM_sf2_file.js",
-        variable: "_drum_42_0_FluidR3_GM_sf2_file"
-      },
-      drumCrash: {
-        url: "https://surikov.github.io/webaudiofontdata/sound/12849_0_FluidR3_GM_sf2_file.js",
-        variable: "_drum_49_0_FluidR3_GM_sf2_file"
       }
     };
     const salamanderSamples = [
-      [21, "A0"], [24, "C1"], [33, "A1"], [36, "C2"], [45, "A2"],
-      [48, "C3"], [57, "A3"], [60, "C4"], [69, "A4"], [72, "C5"],
-      [81, "A5"], [84, "C6"], [93, "A6"], [96, "C7"], [105, "A7"]
+      [21, "A0"],
+      [24, "C1"], [27, "Ds1"], [30, "Fs1"], [33, "A1"],
+      [36, "C2"], [39, "Ds2"], [42, "Fs2"], [45, "A2"],
+      [48, "C3"], [51, "Ds3"], [54, "Fs3"], [57, "A3"],
+      [60, "C4"], [63, "Ds4"], [66, "Fs4"], [69, "A4"],
+      [72, "C5"], [75, "Ds5"], [78, "Fs5"], [81, "A5"],
+      [84, "C6"], [87, "Ds6"], [90, "Fs6"], [93, "A6"],
+      [96, "C7"], [99, "Ds7"], [102, "Fs7"], [105, "A7"], [108, "C8"]
     ].map(([midi, name]) => ({ midi, url: `audio/salamander/${name}.mp3` }));
+    const fingerBassSamples = [
+      [28, "E"], [29, "F"], [30, "Fsharp"], [31, "G"], [32, "Gsharp"], [33, "A"],
+      [34, "Asharp"], [35, "B"], [36, "C"], [37, "Csharp"], [38, "D"], [39, "Dsharp"]
+    ].map(([midi, name]) => ({ midi, url: `audio/finger-bass/${name}.mp3` }));
+    const muldjordDrumSamples = {
+      kick: ["samples-19-KdrumL.mp3", "samples-21-KdrumL.mp3"],
+      snare: ["samples-45-Snare.mp3", "samples-48-Snare.mp3"],
+      hat: ["samples-20-HihatClosed.mp3", "samples-24-HihatClosed.mp3"],
+      crash: ["samples-6-CrashL.mp3", "samples-8-CrashL.mp3"]
+    };
 
     const NOTE_TO_SEMITONE = {
       C: 0, "C#": 1, Db: 1,
@@ -1358,8 +1353,6 @@
     function selectedSamplePresetKeys() {
       const keys = [];
       if (els.bassTone.value === "sampleUpright") keys.push("bassAcoustic");
-      if (els.bassTone.value === "sampleElectric") keys.push("bassElectric");
-      if (els.drumTone.value === "sampleStudio") keys.push("drumKick", "drumSnare", "drumHat", "drumCrash");
       return keys;
     }
 
@@ -1386,10 +1379,18 @@
       return cache.get(url);
     }
 
-    function salamanderSampleFor(midi) {
-      return salamanderSamples.reduce((closest, sample) =>
+    function closestMappedSample(midi, samples) {
+      return samples.reduce((closest, sample) =>
         Math.abs(sample.midi - midi) < Math.abs(closest.midi - midi) ? sample : closest
       );
+    }
+
+    function salamanderSampleFor(midi) {
+      return closestMappedSample(midi, salamanderSamples);
+    }
+
+    function fingerBassSampleFor(midi) {
+      return closestMappedSample(midi, fingerBassSamples);
     }
 
     async function prepareSalamanderPiano(audioContext) {
@@ -1402,6 +1403,17 @@
         });
       });
       await Promise.all([...requiredUrls].map(url => loadAudioSample(audioContext, url)));
+    }
+
+    async function prepareFingerBass(audioContext) {
+      await Promise.all(fingerBassSamples.map(sample => loadAudioSample(audioContext, sample.url)));
+    }
+
+    async function prepareMuldjordDrums(audioContext) {
+      const urls = Object.values(muldjordDrumSamples)
+        .flat()
+        .map(name => `audio/muldjord-drums/${name}`);
+      await Promise.all(urls.map(url => loadAudioSample(audioContext, url)));
     }
 
     function playSalamanderPiano(time, midi, duration, volume) {
@@ -1425,6 +1437,43 @@
       return true;
     }
 
+    function playFingerBass(time, midi, duration, volume) {
+      const c = ctx();
+      const sample = fingerBassSampleFor(midi);
+      const buffer = sampleBufferCache(c).get(sample.url);
+      if (!buffer || typeof buffer.then === "function") return false;
+      const source = c.createBufferSource();
+      const gain = c.createGain();
+      const tail = Math.min(3.2, Math.max(0.5, duration * 1.35));
+      source.buffer = buffer;
+      source.playbackRate.setValueAtTime(2 ** ((midi - sample.midi) / 12), time);
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(volume, time + 0.008);
+      gain.gain.setValueAtTime(volume, Math.max(time + 0.03, time + tail - 0.14));
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + tail);
+      source.connect(gain);
+      gain.connect(c.destination);
+      source.start(time);
+      source.stop(time + tail + 0.03);
+      return true;
+    }
+
+    function playMuldjordDrum(kind, time, volume) {
+      const c = ctx();
+      const names = muldjordDrumSamples[kind];
+      const name = names[Math.floor(Math.random() * names.length)];
+      const buffer = sampleBufferCache(c).get(`audio/muldjord-drums/${name}`);
+      if (!buffer || typeof buffer.then === "function") return false;
+      const source = c.createBufferSource();
+      const gain = c.createGain();
+      source.buffer = buffer;
+      gain.gain.setValueAtTime(volume, time);
+      source.connect(gain);
+      gain.connect(c.destination);
+      source.start(time);
+      return true;
+    }
+
     async function prepareSamplePreset(key, audioContext) {
       const definition = samplePresetDefinitions[key];
       if (!definition || !window.WebAudioFontPlayer) throw new Error("Sample player is unavailable.");
@@ -1437,6 +1486,8 @@
 
     async function prepareSelectedSamples(audioContext) {
       if (els.pianoTone.value === "sampleGrand") await prepareSalamanderPiano(audioContext);
+      if (els.bassTone.value === "sampleElectric") await prepareFingerBass(audioContext);
+      if (els.drumTone.value === "sampleStudio") await prepareMuldjordDrums(audioContext);
       const keys = selectedSamplePresetKeys();
       if (!keys.length) return;
       const previous = preparedSampleContexts.get(audioContext) || new Set();
@@ -1557,7 +1608,7 @@
     function playKick(time) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playSamplePreset("drumKick", time, 36, 0.45, 0.8)) return;
+      if (tone === "sampleStudio" && playMuldjordDrum("kick", time, 0.74)) return;
       const c = ctx();
       const osc = c.createOscillator();
       const gain = c.createGain();
@@ -1575,7 +1626,7 @@
     function playSnare(time) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playSamplePreset("drumSnare", time, 38, 0.45, 0.72)) return;
+      if (tone === "sampleStudio" && playMuldjordDrum("snare", time, 0.72)) return;
       if (tone === "brush") {
         noiseBurst(time, 0.14, 0.12, 1800);
       } else if (tone === "electro") {
@@ -1590,7 +1641,7 @@
     function playHat(time, strong = false) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playSamplePreset("drumHat", time, 42, strong ? 0.19 : 0.13, strong ? 0.48 : 0.32)) return;
+      if (tone === "sampleStudio" && playMuldjordDrum("hat", time, strong ? 0.44 : 0.3)) return;
       const gain = tone === "brush" ? 0.04 : tone === "electro" ? 0.09 : tone === "rock" || tone === "arena" ? 0.085 : 0.065;
       noiseBurst(time, tone === "brush" ? 0.08 : 0.045, strong ? gain * 1.55 : gain, tone === "brush" ? 3000 : 5000);
     }
@@ -1598,7 +1649,7 @@
     function playCrash(time, strong = false) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playSamplePreset("drumCrash", time, 49, strong ? 1.8 : 1.1, strong ? 0.56 : 0.38)) return;
+      if (tone === "sampleStudio" && playMuldjordDrum("crash", time, strong ? 0.52 : 0.36)) return;
       const gain = tone === "arena" ? 0.2 : 0.15;
       noiseBurst(time, strong ? 0.55 : 0.38, gain, 7200);
       makeOsc(time, tone === "arena" ? 420 : 520, 0.22, "triangle", strong ? 0.025 : 0.016);
@@ -1862,7 +1913,7 @@
       const tone = els.bassTone.value;
       const duration = Math.max(0.18, secondsPerUnit * bassDurationUnits(bars[barIndex]));
       if (tone === "sampleUpright" && playSamplePreset("bassAcoustic", time, midi, duration * 1.08, 0.7)) return;
-      if (tone === "sampleElectric" && playSamplePreset("bassElectric", time, midi, duration * 1.05, 0.66)) return;
+      if (tone === "sampleElectric" && playFingerBass(time, midi, duration, 0.7)) return;
       if (tone === "sub") makeSustainedOsc(time, freq, duration, "sine", 0.15, 0.02, 0.08);
       else if (tone === "sustain") makeSustainedOsc(time, freq, duration, "triangle", 0.14, 0.015, 0.1);
       else if (tone === "uprightLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.12, 0.018, 0.16);
