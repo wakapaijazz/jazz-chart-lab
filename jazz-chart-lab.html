@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jazz Chart Lab</title>
+  <style>
+    :root {
+      --bg: #101217;
+      --panel: #191d26;
+      --panel2: #222837;
+      --text: #f2f2f2;
+      --muted: #aab0c0;
+      --accent: #f2c94c;
+      --accent2: #7dd3fc;
+      --danger: #ff6b6b;
+      --border: #333a4d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(125, 211, 252, 0.13), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(242, 201, 76, 0.11), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+    }
+
+    header { margin-bottom: 22px; }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 430px 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 940px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: rgba(25, 29, 38, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(8px);
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    textarea,
+    select,
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0c0e13;
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea {
+      min-height: 230px;
+      resize: vertical;
+      padding: 14px;
+      font-size: 17px;
+      line-height: 1.7;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    select,
+    input[type="text"] {
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    textarea:focus,
+    input:focus,
+    select:focus {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.13);
+    }
+
+    .controls,
+    .tone-grid,
+    .save-grid,
+    .export-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .controls,
+      .tone-grid,
+      .save-grid,
+      .export-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .control {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .control.wide { grid-column: 1 / -1; }
+
+    input[type="range"] { width: 100%; }
+
+    .tempo-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .tempo-value {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 22px;
+    }
+
+    .button-row,
+    .mini-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .button-row { margin-top: 16px; }
+
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      padding: 12px 18px;
+      color: #111;
+      font-weight: 800;
+      font-size: 15px;
+      transition: transform 0.08s ease, filter 0.12s ease;
+    }
+
+    .mini-buttons button {
+      flex: 1;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    button:hover { filter: brightness(1.07); }
+    button:active { transform: translateY(1px); }
+
+    .play { flex: 1; background: var(--accent); }
+    .stop { flex: 1; background: var(--danger); color: white; }
+    .parse,
+    .utility { background: var(--accent2); }
+    .neutral { background: #d7dde8; }
+
+    .toggles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 11px 12px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .score-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .score-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .now {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .chart {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 720px) {
+      .chart { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    }
+
+    .bar {
+      min-height: 86px;
+      border: 1px solid var(--border);
+      background: rgba(12, 14, 19, 0.88);
+      border-radius: 14px;
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(242, 201, 76, 0.14);
+      background: linear-gradient(135deg, rgba(242, 201, 76, 0.18), rgba(12, 14, 19, 0.96));
+    }
+
+    .bar-number {
+      position: absolute;
+      right: 10px;
+      bottom: 8px;
+      color: rgba(255,255,255,0.22);
+      font-size: 22px;
+      font-weight: 900;
+    }
+
+    .meter-badge {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      color: rgba(255,255,255,0.36);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .section-badge {
+      position: absolute;
+      left: 10px;
+      top: 8px;
+      color: #16130a;
+      background: var(--accent2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .bar.has-section .chords { padding-top: 18px; }
+
+    .chords {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      min-height: 50px;
+      align-items: center;
+      padding-bottom: 18px;
+    }
+
+    .chord {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      border-radius: 6px;
+      padding: 3px 4px;
+    }
+
+    .chord:hover { color: var(--accent2); }
+    .chord.selected { color: #16130a; background: var(--accent); }
+
+    .chord.single {
+      grid-column: span 2;
+      font-size: 24px;
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      margin-top: 14px;
+    }
+
+    .section-label {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
+      margin: 18px 0 0;
+    }
+
+    .error {
+      margin-top: 12px;
+      color: #ffd1d1;
+      background: rgba(255, 107, 107, 0.14);
+      border: 1px solid rgba(255, 107, 107, 0.35);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: none;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-line;
+    }
+
+    .voicing-editor {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 12px;
+      z-index: 2;
+      margin-bottom: 16px;
+      padding: 12px 0;
+      background: rgba(25, 29, 38, 0.98);
+    }
+
+    .voicing-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .voicing-heading strong { font-size: 16px; }
+    .voicing-heading span, .voicing-empty { color: var(--muted); font-size: 13px; }
+    .voicing-heading-actions { display: flex; gap: 6px; }
+
+    .voicing-notes { display: grid; gap: 6px; }
+
+    .voicing-note {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 6px;
+      align-items: center;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 8px;
+    }
+
+    .voicing-note.muted { opacity: 0.46; }
+    .voicing-note-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 800; }
+
+    .voicing-action {
+      min-width: 32px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: #d7dde8;
+      color: #111;
+      font-size: 13px;
+    }
+
+    .voicing-action.mute { min-width: 58px; background: var(--accent2); }
+    .voicing-reset { padding: 7px 10px; border-radius: 6px; background: #d7dde8; font-size: 12px; }
+    .voicing-close { padding: 7px 10px; border-radius: 6px; background: var(--danger); color: white; font-size: 12px; }
+    .voicing-play { padding: 7px 10px; border-radius: 6px; background: var(--accent); font-size: 12px; }
+
+    .pill {
+      color: #111;
+      background: var(--accent);
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-weight: 800;
+      font-size: 12px;
+      display: inline-block;
+      margin: 2px 2px 2px 0;
+    }
+
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Jazz Chart Lab</h1>
+      <div class="subtitle">
+        Enter a chord chart, choose meter and sounds, then play, save, load, or export it as MIDI/WAV.
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <label for="chartInput">Chord Chart</label>
+        <textarea id="chartInput">[4/4] | Cmaj7 | Am7 D7 | G7b9#11 | C6/9 |
+[3/4] | Em7 A7 | Dm7 G7 | Cmaj9/E | Cmaj7 |</textarea>
+        <div id="error" class="error"></div>
+
+        <div class="controls">
+          <div class="control">
+            <div class="tempo-row">
+              <label for="tempo">Tempo</label>
+              <div><span id="tempoValue" class="tempo-value">140</span> bpm</div>
+            </div>
+            <input id="tempo" type="range" min="30" max="440" value="140" />
+          </div>
+
+          <div class="control">
+            <label for="style">Style</label>
+            <select id="style">
+              <option value="swing">Swing</option>
+              <option value="straight">Straight</option>
+              <option value="bossa">Bossa Nova</option>
+              <option value="latin">Latin</option>
+              <option value="sixteenth">16th</option>
+              <option value="hiphop">Hip Hop</option>
+            </select>
+          </div>
+
+          <div class="control wide">
+            <label for="meter">Default Meter</label>
+            <select id="meter">
+              <option value="4/4">4/4</option>
+              <option value="3/4">3/4</option>
+              <option value="5/4">5/4</option>
+              <option value="7/4">7/4</option>
+              <option value="11/4">11/4</option>
+              <option value="13/4">13/4</option>
+              <option value="6/8">6/8</option>
+              <option value="7/8">7/8</option>
+              <option value="11/8">11/8</option>
+              <option value="13/8">13/8</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-label">Sounds</div>
+        <div class="tone-grid">
+          <div class="control">
+            <label for="pianoTone">Piano</label>
+            <select id="pianoTone">
+              <option value="warm">Warm Electric</option>
+              <option value="warmLong">Warm Electric Long</option>
+              <option value="bright">Bright Keys</option>
+              <option value="acoustic">Acoustic Piano</option>
+              <option value="organ">Organ</option>
+              <option value="pad">Sustained Pad</option>
+              <option value="strings">Strings</option>
+              <option value="bell">Bell</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="drumTone">Drums</label>
+            <select id="drumTone">
+              <option value="dry">Dry Kit</option>
+              <option value="brush">Brush</option>
+              <option value="electro">Electronic</option>
+              <option value="rock">Rock Kit</option>
+              <option value="arena">Arena Kit</option>
+              <option value="click">Click Only</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="bassTone">Bass</label>
+            <select id="bassTone">
+              <option value="upright">Upright</option>
+              <option value="uprightLong">Upright Long</option>
+              <option value="electric">Electric</option>
+              <option value="electricLong">Electric Long</option>
+              <option value="fretless">Fretless Bass</option>
+              <option value="synth">Synth Bass</option>
+              <option value="sustain">Sustained Bass</option>
+              <option value="sub">Sub</option>
+              <option value="pluck">Pluck</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="bassStyle">Bass Line</label>
+            <select id="bassStyle">
+              <option value="root">Root Only</option>
+              <option value="twoFeel">2 Feel</option>
+              <option value="walking" selected>Walking Bass</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toggles">
+          <label class="toggle">Metronome <input id="metronomeOn" type="checkbox" checked /></label>
+          <label class="toggle">Drums <input id="drumsOn" type="checkbox" checked /></label>
+          <label class="toggle">Bass <input id="bassOn" type="checkbox" checked /></label>
+          <label class="toggle">Piano <input id="pianoOn" type="checkbox" checked /></label>
+        </div>
+
+        <div class="button-row">
+          <button class="parse" id="parseBtn">Refresh</button>
+          <button class="play" id="playBtn">Play</button>
+          <button class="stop" id="stopBtn">Stop</button>
+        </div>
+
+        <div class="section-label">Save / Load</div>
+        <div class="save-grid">
+          <div class="control wide">
+            <label for="chartName">Chart Name</label>
+            <input id="chartName" type="text" value="My Chart" />
+            <div class="mini-buttons">
+              <button class="utility" id="saveBtn">Save</button>
+              <button class="neutral" id="exportJsonBtn">Export JSON</button>
+            </div>
+          </div>
+          <div class="control wide">
+            <label for="savedCharts">Saved Charts</label>
+            <select id="savedCharts"></select>
+            <div class="mini-buttons">
+              <button class="utility" id="loadBtn">Load</button>
+              <button class="neutral" id="deleteBtn">Delete</button>
+              <button class="neutral" id="importJsonBtn">Import</button>
+            </div>
+            <input id="importFile" type="file" accept="application/json,.json" />
+          </div>
+        </div>
+
+        <div class="section-label">Export Audio / MIDI</div>
+        <div class="export-grid">
+          <button class="utility" id="midiBtn">Export MIDI</button>
+          <button class="utility" id="wavBtn">Export WAV</button>
+        </div>
+
+        <div class="small-note">
+          Supported examples:
+          <span class="pill">C</span>
+          <span class="pill">Cm</span>
+          <span class="pill">C-7</span>
+          <span class="pill">Cmaj9</span>
+          <span class="pill">C7b9#11</span>
+          <span class="pill">Cm7b5</span>
+          <span class="pill">Cdim7</span>
+          <span class="pill">C7sus4</span>
+          <span class="pill">C6/9</span>
+          <span class="pill">C/E</span>
+          <span class="pill">N.C.</span>
+          <span class="pill">%</span>
+          <br />
+          Use spaces for multiple chords in one bar. Use inline meter tags such as <code>[3/4]</code> or <code>[7/8]</code>.
+          Repeats and endings are supported: <code>|: Am7 | D7 | [1] Gmaj7 :| [2] Cmaj7 |</code>.
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="score-header">
+          <div class="score-title">Chord Chart</div>
+          <div class="now" id="nowPlaying">Stopped</div>
+        </div>
+        <div id="voicingEditor" class="voicing-editor"></div>
+        <div id="chart" class="chart"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const els = {
+      input: document.getElementById("chartInput"),
+      chart: document.getElementById("chart"),
+      voicingEditor: document.getElementById("voicingEditor"),
+      tempo: document.getElementById("tempo"),
+      tempoValue: document.getElementById("tempoValue"),
+      play: document.getElementById("playBtn"),
+      stop: document.getElementById("stopBtn"),
+      parse: document.getElementById("parseBtn"),
+      error: document.getElementById("error"),
+      now: document.getElementById("nowPlaying"),
+      style: document.getElementById("style"),
+      meter: document.getElementById("meter"),
+      pianoTone: document.getElementById("pianoTone"),
+      bassTone: document.getElementById("bassTone"),
+      bassStyle: document.getElementById("bassStyle"),
+      drumTone: document.getElementById("drumTone"),
+      metronomeOn: document.getElementById("metronomeOn"),
+      drumsOn: document.getElementById("drumsOn"),
+      bassOn: document.getElementById("bassOn"),
+      pianoOn: document.getElementById("pianoOn"),
+      chartName: document.getElementById("chartName"),
+      savedCharts: document.getElementById("savedCharts"),
+      save: document.getElementById("saveBtn"),
+      load: document.getElementById("loadBtn"),
+      delete: document.getElementById("deleteBtn"),
+      exportJson: document.getElementById("exportJsonBtn"),
+      importJson: document.getElementById("importJsonBtn"),
+      importFile: document.getElementById("importFile"),
+      midi: document.getElementById("midiBtn"),
+      wav: document.getElementById("wavBtn")
+    };
+
+    let audioCtx = null;
+    let renderCtx = null;
+    let bars = [];
+    let selectedChord = null;
+    const voicingOverrides = new Map();
+    const voicingSignatures = new Map();
+    let isPlaying = false;
+    let schedulerTimer = null;
+    let inputRefreshTimer = null;
+    let currentBar = 0;
+    let currentUnit = 0;
+    let nextNoteTime = 0;
+
+    const lookahead = 25;
+    const scheduleAheadTime = 0.12;
+    const storageKey = "jazz-chart-lab:saved-charts:v1";
+    const ticksPerQuarter = 480;
+
+    const NOTE_TO_SEMITONE = {
+      C: 0, "C#": 1, Db: 1,
+      D: 2, "D#": 3, Eb: 3,
+      E: 4,
+      F: 5, "F#": 6, Gb: 6,
+      G: 7, "G#": 8, Ab: 8,
+      A: 9, "A#": 10, Bb: 10,
+      B: 11
+    };
+
+    const ALTERATION_INTERVALS = {
+      b5: 6, "#5": 8,
+      b9: 13, "#9": 15,
+      "#11": 18, b13: 20
+    };
+
+    const midiPrograms = {
+      warm: 4,
+      warmLong: 4,
+      bright: 0,
+      acoustic: 0,
+      organ: 16,
+      bell: 14,
+      pad: 89,
+      strings: 48,
+      upright: 32,
+      uprightLong: 32,
+      electric: 33,
+      electricLong: 33,
+      fretless: 35,
+      synth: 38,
+      sustain: 33,
+      sub: 38,
+      pluck: 36
+    };
+
+    function ctx() {
+      return renderCtx || audioCtx;
+    }
+
+    function midiToFreq(midi) {
+      return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+
+    function noteNameToMidi(root, octave) {
+      return 12 * (octave + 1) + NOTE_TO_SEMITONE[root];
+    }
+
+    function parseMeter(value) {
+      const match = String(value).trim().match(/^(\d{1,2})\s*\/\s*(4|8)$/);
+      if (!match) {
+        throw new Error(`Unsupported meter "${value}". Try 3/4, 6/8, or 7/4.`);
+      }
+
+      const numerator = Number(match[1]);
+      const denominator = Number(match[2]);
+      if (numerator < 1 || numerator > 32) {
+        throw new Error(`Meter "${value}" is out of range.`);
+      }
+
+      return {
+        label: `${numerator}/${denominator}`,
+        numerator,
+        denominator,
+        units: numerator,
+        accentUnits: getAccentUnits(numerator, denominator)
+      };
+    }
+
+    function getAccentUnits(numerator, denominator) {
+      if (denominator === 8) {
+        if (numerator === 6) return [0, 3];
+        if (numerator === 7) return [0, 2, 4];
+        if (numerator === 11) return [0, 3, 6, 8];
+        if (numerator === 13) return [0, 3, 6, 9, 11];
+      }
+
+      if (denominator === 4) {
+        if (numerator === 3) return [0];
+        if (numerator === 5) return [0, 3];
+        if (numerator === 7) return [0, 4];
+        if (numerator === 11) return [0, 3, 6, 9];
+        if (numerator === 13) return [0, 3, 6, 9, 11];
+      }
+
+      return [0];
+    }
+
+    function unitSeconds(meter) {
+      const quarterSeconds = 60 / Number(els.tempo.value);
+      return meter.denominator === 8 ? quarterSeconds / 2 : quarterSeconds;
+    }
+
+    function unitTicks(meter) {
+      return meter.denominator === 8 ? ticksPerQuarter / 2 : ticksPerQuarter;
+    }
+
+    function normalizeChordName(name) {
+      return name
+        .replace(/[\u25b3\u2206\u0394]/g, "maj")
+        .replace(/[\u2212\u2013\u2014]/g, "-")
+        .replace(/[\u00ba\u00b0]/g, "dim")
+        .replace(/\u00f87?/g, "m7b5")
+        .trim();
+    }
+
+    function uniqueSorted(values) {
+      return [...new Set(values)].sort((a, b) => a - b);
+    }
+
+    function extractParentheticalTensions(chordName, original) {
+      const tensionIntervals = [];
+      let hasMajorSeventh = false;
+      const tensionMap = {
+        "5": 7, "6": 9, "9": 14, "11": 17, "13": 21,
+        b5: 6, "#5": 8, "-5": 6, "+5": 8,
+        b9: 13, "#9": 15, "-9": 13, "+9": 15,
+        "#11": 18, "+11": 18,
+        b13: 20, "-13": 20
+      };
+      const withoutParentheses = chordName.replace(/\(([^()]*)\)/g, (_, content) => {
+        const tokens = content.split(",").map(token => token.trim()).filter(Boolean);
+        if (!tokens.length) throw new Error(`Empty parenthetical tension in chord "${original}".`);
+        tokens.forEach(token => {
+          const normalizedToken = token.replace(/\s+/g, "");
+          if (/^(?:M7|maj7)$/.test(normalizedToken)) {
+            hasMajorSeventh = true;
+            return;
+          }
+          if (!(normalizedToken in tensionMap)) {
+            throw new Error(`Unsupported parenthetical tension "${token}" in chord "${original}".`);
+          }
+          tensionIntervals.push(tensionMap[normalizedToken]);
+        });
+        return "";
+      });
+
+      if (/[()]/.test(withoutParentheses)) {
+        throw new Error(`Unclosed parenthetical tension in chord "${original}".`);
+      }
+      return { chordName: withoutParentheses, tensionIntervals, hasMajorSeventh };
+    }
+
+    function parseChord(chordName, previousChord = null) {
+      const original = chordName.trim();
+      if (!original) throw new Error("Empty chord token.");
+
+      if (/^(N\.?C\.?|rest)$/i.test(original)) {
+        return { name: original, isRest: true, root: null, bass: null, intervals: [] };
+      }
+
+      if (original === "%" || /^repeat$/i.test(original)) {
+        if (!previousChord || previousChord.isRest) {
+          throw new Error("% needs a previous chord.");
+        }
+        return { ...previousChord, name: original, displayName: previousChord.displayName || previousChord.name };
+      }
+
+      const extracted = extractParentheticalTensions(normalizeChordName(original), original);
+      const normalized = extracted.chordName;
+      const match = normalized.match(/^([A-G](?:#|b)?)(\S*)$/);
+      if (!match) throw new Error(`Cannot parse chord "${original}".`);
+
+      const root = match[1];
+      let quality = match[2] || "";
+      let bass = null;
+      const slashBass = quality.match(/\/([A-G](?:#|b)?)$/);
+      if (slashBass) {
+        bass = slashBass[1];
+        quality = quality.slice(0, -slashBass[0].length);
+      }
+
+      if (!(root in NOTE_TO_SEMITONE)) throw new Error(`Unknown root "${root}".`);
+      if (bass && !(bass in NOTE_TO_SEMITONE)) throw new Error(`Unknown slash bass "${bass}".`);
+
+      quality = quality.replace(/\s+/g, "");
+      if (/^min/i.test(quality) || /^mi/i.test(quality)) {
+        quality = quality.replace(/^(min|mi)/i, "m");
+      } else if (/^maj/i.test(quality) || /^ma/i.test(quality) || /^M/.test(quality)) {
+        quality = quality.replace(/^(maj|ma|M)/, "maj");
+      }
+      quality = quality.replace(/^dimM7$/i, "dimmaj7");
+      if (extracted.hasMajorSeventh && /^dim$/i.test(quality)) quality = "dimmaj7";
+
+      return {
+        name: original,
+        displayName: original,
+        root,
+        bass,
+        rootSemitone: NOTE_TO_SEMITONE[root],
+        intervals: uniqueSorted([...chordIntervals(quality, original), ...extracted.tensionIntervals])
+      };
+    }
+
+    function chordIntervals(quality, original) {
+      const lower = quality.toLowerCase();
+      const has = token => lower.includes(token.toLowerCase());
+      const starts = token => lower.startsWith(token.toLowerCase());
+      let intervals;
+
+      const supportedQuality = /^(?:maj|min|ma|mi|m|-|dim|aug|\+|sus|sus2|sus4)?(?:maj)?(?:6(?:\/9)?|7|9|11|13)?(?:b5|#5|b9|#9|#11|b13|add9|sus|sus2|sus4|alt)*$/i;
+      if (!supportedQuality.test(quality)) {
+        throw new Error(`Unsupported chord quality "${original}".`);
+      }
+
+      if (quality === "" || quality === "maj") {
+        intervals = [0, 4, 7];
+      } else if (starts("maj")) {
+        intervals = [0, 4, 7, 11];
+      } else if (starts("m7b5") || starts("-7b5")) {
+        intervals = [0, 3, 6, 10];
+      } else if (starts("dim7")) {
+        intervals = [0, 3, 6, 9];
+      } else if (starts("dim")) {
+        intervals = [0, 3, 6];
+        if (has("maj7")) intervals.push(11);
+      } else if (starts("m") || starts("-")) {
+        intervals = [0, 3, 7];
+        if (has("maj7")) intervals.push(11);
+        else if (has("6")) intervals.push(9);
+        else if (/[79]|11|13/.test(lower)) intervals.push(10);
+      } else if (starts("sus")) {
+        intervals = [0, 5, 7];
+      } else if (starts("aug") || starts("+")) {
+        intervals = [0, 4, 8];
+      } else {
+        intervals = [0, 4, 7];
+        if (has("7") || has("9") || has("11") || has("13")) intervals.push(10);
+        else if (has("6")) intervals.push(9);
+      }
+
+      if (has("sus4")) {
+        intervals = intervals.filter(i => i !== 3 && i !== 4);
+        intervals.push(5);
+      } else if (has("sus2")) {
+        intervals = intervals.filter(i => i !== 3 && i !== 4);
+        intervals.push(2);
+      }
+
+      if (has("add9") || has("9") || has("6/9")) intervals.push(14);
+      if (has("11")) intervals.push(17);
+      if (has("13")) intervals.push(21);
+
+      Object.entries(ALTERATION_INTERVALS).forEach(([token, interval]) => {
+        if (has(token)) intervals.push(interval);
+      });
+
+      if (has("alt")) intervals.push(6, 8, 13, 15);
+      return uniqueSorted(intervals);
+    }
+
+    function parseChartToken(raw, sourceIndex) {
+      let text = raw.trim();
+      let startRepeat = false;
+      let endRepeat = false;
+      let ending = null;
+      let section = null;
+
+      if (text.startsWith(":")) {
+        startRepeat = true;
+        text = text.slice(1).trim();
+      }
+      if (text.endsWith(":")) {
+        endRepeat = true;
+        text = text.slice(0, -1).trim();
+      }
+
+      const endingMatch = text.match(/^(?:\[([1-6])\]|([1-6])\.)\s*(.*)$/);
+      if (endingMatch) {
+        ending = Number(endingMatch[1] || endingMatch[2]);
+        text = endingMatch[3].trim();
+      }
+
+      const sectionMatch = text.match(/^<([A-Za-z][A-Za-z0-9 _-]{0,31})>\s*(.*)$/);
+      if (sectionMatch) {
+        section = sectionMatch[1].trim();
+        text = sectionMatch[2].trim();
+      }
+
+      return {
+        text,
+        source: raw.trim(),
+        sourceIndex,
+        startRepeat,
+        endRepeat,
+        ending,
+        section
+      };
+    }
+
+    function tokenizeChart(text) {
+      return text
+        .replace(/\r/g, "")
+        .replace(/\n/g, " ")
+        .split("|")
+        .map((s, index) => parseChartToken(s, index + 1))
+        .filter(token => token.text || token.startRepeat || token.endRepeat || token.ending || token.section);
+    }
+
+    function expandRepeats(tokens) {
+      const expanded = [];
+      for (let index = 0; index < tokens.length; index += 1) {
+        const token = tokens[index];
+        if (!token.startRepeat) {
+          expanded.push(token);
+          continue;
+        }
+
+        const endIndex = tokens.findIndex((candidate, candidateIndex) => candidateIndex >= index && candidate.endRepeat);
+        if (endIndex === -1) {
+          throw new Error(`Repeat starting at input part ${token.sourceIndex} is missing a :| ending.`);
+        }
+
+        const repeatBody = tokens.slice(index, endIndex + 1);
+        const firstEndingIndex = repeatBody.findIndex(bar => bar.ending === 1);
+        if (firstEndingIndex === -1) {
+          expanded.push(...repeatBody, ...repeatBody.map(bar => ({ ...bar, repeated: true })));
+          index = endIndex;
+          continue;
+        }
+
+        // The first ending is inside |: ... :|. Later endings follow :| and
+        // divide the remaining chart into the alternate pass endings.
+        const laterEndingTokens = tokens.slice(endIndex + 1);
+        if (laterEndingTokens[0]?.ending !== 2) {
+          throw new Error(`First ending at input part ${repeatBody[firstEndingIndex].sourceIndex} needs a [2] ending immediately after :|.`);
+        }
+
+        const endings = new Map([[1, repeatBody.slice(firstEndingIndex)]]);
+        let activeEnding = null;
+        laterEndingTokens.forEach(bar => {
+          if (bar.ending) {
+            activeEnding = bar.ending;
+            if (endings.has(activeEnding)) {
+              throw new Error(`Ending [${activeEnding}] is defined more than once.`);
+            }
+            endings.set(activeEnding, []);
+          }
+          if (!activeEnding) {
+            throw new Error(`Expected an ending marker after :| at input part ${bar.sourceIndex}.`);
+          }
+          endings.get(activeEnding).push(bar);
+        });
+
+        const lastEnding = Math.max(...endings.keys());
+        for (let ending = 1; ending <= lastEnding; ending += 1) {
+          const endingBars = endings.get(ending);
+          if (!endingBars) {
+            throw new Error(`Ending [${ending}] is missing before ending [${lastEnding}].`);
+          }
+          expanded.push(...repeatBody.slice(0, firstEndingIndex).map(bar => ({ ...bar, repeated: ending > 1 })));
+          expanded.push(...endingBars.map(bar => ({ ...bar, repeated: ending > 1 })));
+        }
+        index = tokens.length;
+      }
+
+      return expanded.filter(token => token.text || token.section);
+    }
+
+    function describeParseError(barText, barNumber, tokenName, error) {
+      const tokenPart = tokenName ? `, token "${tokenName}"` : "";
+      return `Parse error at bar ${barNumber}${tokenPart}: ${error.message}\nBar text: ${barText}`;
+    }
+
+    function parseChart(text) {
+      const tokens = expandRepeats(tokenizeChart(text));
+      if (tokens.length === 0) throw new Error("Chord chart is empty.");
+
+      const parsedBars = [];
+      let activeMeter = parseMeter(els.meter.value);
+      let previousChord = null;
+      let pendingSection = null;
+
+      tokens.forEach((token, index) => {
+        let barText = token.text;
+        if (token.section) pendingSection = token.section;
+        if (!barText) return;
+        const meterMatch = barText.match(/^\[(\d{1,2}\s*\/\s*(?:4|8))\]\s*(.*)$/);
+        if (meterMatch) {
+          try {
+            activeMeter = parseMeter(meterMatch[1]);
+          } catch (e) {
+            throw new Error(describeParseError(token.source || barText, index + 1, meterMatch[1], e));
+          }
+          barText = meterMatch[2].trim();
+          if (!barText) return;
+        }
+
+        const chordNames = barText.split(/\s+/).filter(Boolean);
+        if (chordNames.length === 0) {
+          throw new Error(describeParseError(token.source || barText, index + 1, "", new Error("Bar is empty.")));
+        }
+        if (chordNames.length > activeMeter.units) {
+          throw new Error(describeParseError(token.source || barText, index + 1, chordNames[activeMeter.units], new Error(`Too many chords for ${activeMeter.label}. Maximum is ${activeMeter.units}.`)));
+        }
+
+        const chords = chordNames.map(name => {
+          let chord;
+          try {
+            chord = parseChord(name, previousChord);
+          } catch (e) {
+            throw new Error(describeParseError(token.source || barText, index + 1, name, e));
+          }
+          if (!chord.isRest && name !== "%") previousChord = chord;
+          return chord;
+        });
+
+        parsedBars.push({
+          chords,
+          meter: { ...activeMeter, accentUnits: [...activeMeter.accentUnits] },
+          section: pendingSection
+        });
+        pendingSection = null;
+      });
+
+      if (parsedBars.length === 0) throw new Error("No bars found.");
+      return parsedBars;
+    }
+
+    function renderChart() {
+      els.chart.innerHTML = "";
+      bars.forEach((bar, i) => {
+        const div = document.createElement("div");
+        div.className = "bar";
+        if (bar.section) div.classList.add("has-section");
+        div.dataset.index = i;
+
+        const chordsDiv = document.createElement("div");
+        chordsDiv.className = "chords";
+
+        bar.chords.forEach((ch, chordIndex) => {
+          const c = document.createElement("div");
+          c.className = "chord" + (bar.chords.length === 1 ? " single" : "");
+          if (selectedChord?.barIndex === i && selectedChord?.chordIndex === chordIndex) c.classList.add("selected");
+          c.textContent = ch.displayName || ch.name;
+          c.title = ch.displayName || ch.name;
+          c.tabIndex = 0;
+          c.setAttribute("role", "button");
+          c.setAttribute("aria-label", `Edit voicing for ${ch.displayName || ch.name}`);
+          c.addEventListener("click", () => selectChord(i, chordIndex));
+          c.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              selectChord(i, chordIndex);
+            }
+          });
+          chordsDiv.appendChild(c);
+        });
+
+        const meter = document.createElement("div");
+        meter.className = "meter-badge";
+        meter.textContent = bar.meter.label;
+
+        if (bar.section) {
+          const section = document.createElement("div");
+          section.className = "section-badge";
+          section.textContent = `Section ${bar.section}`;
+          div.appendChild(section);
+        }
+
+        const num = document.createElement("div");
+        num.className = "bar-number";
+        num.textContent = i + 1;
+
+        div.appendChild(chordsDiv);
+        div.appendChild(meter);
+        div.appendChild(num);
+        els.chart.appendChild(div);
+      });
+      renderVoicingEditor();
+    }
+
+    function voicingKey(barIndex, chordIndex) {
+      return `${barIndex}:${chordIndex}`;
+    }
+
+    function chordSignature(chord) {
+      if (!chord || chord.isRest) return "rest";
+      return `${chord.root}|${chord.bass || ""}|${chord.intervals.join(",")}`;
+    }
+
+    function chordForVoicingKey(key) {
+      const match = key.match(/^(\d+):(\d+)$/);
+      if (!match) return null;
+      return bars[Number(match[1])]?.chords[Number(match[2])] || null;
+    }
+
+    function reconcileVoicingOverrides() {
+      voicingOverrides.forEach((_, key) => {
+        const chord = chordForVoicingKey(key);
+        if (!chord || chord.isRest || voicingSignatures.get(key) !== chordSignature(chord)) {
+          voicingOverrides.delete(key);
+          voicingSignatures.delete(key);
+        }
+      });
+    }
+
+    function midiToNoteLabel(midi) {
+      const names = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+      return `${names[((midi % 12) + 12) % 12]}${Math.floor(midi / 12) - 1}`;
+    }
+
+    function editableVoicing(barIndex, chordIndex, chord) {
+      const key = voicingKey(barIndex, chordIndex);
+      if (!voicingOverrides.has(key)) {
+        voicingOverrides.set(key, defaultPianoVoicing(chord).map((midi, id) => ({ id, midi, muted: false })));
+        voicingSignatures.set(key, chordSignature(chord));
+      }
+      return voicingOverrides.get(key);
+    }
+
+    function selectChord(barIndex, chordIndex) {
+      const chord = bars[barIndex]?.chords[chordIndex];
+      if (!chord || chord.isRest) return;
+      selectedChord = { barIndex, chordIndex };
+      editableVoicing(barIndex, chordIndex, chord);
+      renderChart();
+    }
+
+    function renderVoicingEditor() {
+      els.voicingEditor.innerHTML = "";
+      if (!selectedChord) {
+        const empty = document.createElement("div");
+        empty.className = "voicing-empty";
+        empty.textContent = "Select a chord";
+        els.voicingEditor.appendChild(empty);
+        return;
+      }
+
+      const { barIndex, chordIndex } = selectedChord;
+      const chord = bars[barIndex]?.chords[chordIndex];
+      if (!chord || chord.isRest) return;
+      const notes = editableVoicing(barIndex, chordIndex, chord);
+      const heading = document.createElement("div");
+      heading.className = "voicing-heading";
+      const title = document.createElement("strong");
+      title.textContent = chord.displayName || chord.name;
+      const actions = document.createElement("div");
+      actions.className = "voicing-heading-actions";
+      const reset = document.createElement("button");
+      reset.className = "voicing-reset";
+      reset.textContent = "Reset";
+      reset.title = "Restore the generated voicing";
+      reset.addEventListener("click", () => {
+        const key = voicingKey(barIndex, chordIndex);
+        voicingOverrides.delete(key);
+        voicingSignatures.delete(key);
+        renderVoicingEditor();
+      });
+      const playHere = document.createElement("button");
+      playHere.className = "voicing-play";
+      playHere.textContent = "Play Here";
+      playHere.title = "Play from the start of this bar";
+      playHere.addEventListener("click", () => start(barIndex));
+      const close = document.createElement("button");
+      close.className = "voicing-close";
+      close.textContent = "Close";
+      close.title = "Close the voicing editor";
+      close.addEventListener("click", () => {
+        selectedChord = null;
+        renderChart();
+      });
+      actions.append(reset, playHere, close);
+      heading.append(title, actions);
+
+      const list = document.createElement("div");
+      list.className = "voicing-notes";
+      [...notes].sort((a, b) => b.midi - a.midi).forEach(note => {
+        const row = document.createElement("div");
+        row.className = "voicing-note" + (note.muted ? " muted" : "");
+        const name = document.createElement("span");
+        name.className = "voicing-note-name";
+        name.textContent = midiToNoteLabel(note.midi);
+        const down = document.createElement("button");
+        down.className = "voicing-action";
+        down.textContent = "Down";
+        down.title = "Move this note down one octave";
+        down.addEventListener("click", () => changeVoicingOctave(barIndex, chordIndex, note.id, -1));
+        const up = document.createElement("button");
+        up.className = "voicing-action";
+        up.textContent = "Up";
+        up.title = "Move this note up one octave";
+        up.addEventListener("click", () => changeVoicingOctave(barIndex, chordIndex, note.id, 1));
+        const mute = document.createElement("button");
+        mute.className = "voicing-action mute";
+        mute.textContent = note.muted ? "Unmute" : "Mute";
+        mute.addEventListener("click", () => toggleVoicingNote(barIndex, chordIndex, note.id));
+        row.append(name, down, up, mute);
+        list.appendChild(row);
+      });
+
+      els.voicingEditor.append(heading, list);
+    }
+
+    function changeVoicingOctave(barIndex, chordIndex, noteId, direction) {
+      const chord = bars[barIndex]?.chords[chordIndex];
+      const note = editableVoicing(barIndex, chordIndex, chord).find(item => item.id === noteId);
+      if (!note) return;
+      note.midi = Math.max(36, Math.min(96, note.midi + direction * 12));
+      renderVoicingEditor();
+    }
+
+    function toggleVoicingNote(barIndex, chordIndex, noteId) {
+      const chord = bars[barIndex]?.chords[chordIndex];
+      const note = editableVoicing(barIndex, chordIndex, chord).find(item => item.id === noteId);
+      if (!note) return;
+      note.muted = !note.muted;
+      renderVoicingEditor();
+    }
+
+    function showMessage(message, isError = false) {
+      els.error.textContent = message;
+      els.error.style.display = "block";
+      els.error.style.color = isError ? "#ffd1d1" : "#d9f8ff";
+    }
+
+    function clearMessage() {
+      els.error.style.display = "none";
+    }
+
+    function refreshChart(resetVoicings = true) {
+      try {
+        bars = parseChart(els.input.value);
+        if (resetVoicings) {
+          selectedChord = null;
+          voicingOverrides.clear();
+          voicingSignatures.clear();
+        } else {
+          reconcileVoicingOverrides();
+        }
+        renderChart();
+        clearMessage();
+        return true;
+      } catch (e) {
+        stop(true);
+        showMessage(e.message, true);
+        return false;
+      }
+    }
+
+    function setActiveBar(index) {
+      document.querySelectorAll(".bar").forEach(el => {
+        el.classList.toggle("active", Number(el.dataset.index) === index);
+      });
+
+      if (isPlaying && bars[index]) {
+        const names = bars[index].chords.map(c => c.displayName || c.name).join(" / ");
+        els.now.textContent = `Playing bar ${index + 1} (${bars[index].meter.label}): ${names}`;
+      } else {
+        els.now.textContent = "Stopped";
+      }
+    }
+
+    function createAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function makeOsc(time, freq, duration, type, gainValue, destination = null) {
+      const c = ctx();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(gainValue, time + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+      osc.connect(gain);
+      gain.connect(destination || c.destination);
+      osc.start(time);
+      osc.stop(time + duration + 0.03);
+    }
+
+    function makeSustainedOsc(time, freq, duration, type, gainValue, attack = 0.035, release = 0.18) {
+      const c = ctx();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      const end = time + Math.max(attack + release + 0.02, duration);
+      const releaseStart = Math.max(time + attack + 0.01, end - release);
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.linearRampToValueAtTime(gainValue, time + attack);
+      gain.gain.setValueAtTime(gainValue, releaseStart);
+      gain.gain.linearRampToValueAtTime(0.0001, end);
+
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(time);
+      osc.stop(end + 0.03);
+    }
+
+    function noiseBurst(time, duration, gainValue, filterFreq, filterType = "highpass") {
+      const c = ctx();
+      const bufferSize = Math.max(1, Math.floor(c.sampleRate * duration));
+      const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+      const source = c.createBufferSource();
+      const filter = c.createBiquadFilter();
+      const gain = c.createGain();
+      source.buffer = buffer;
+      filter.type = filterType;
+      filter.frequency.setValueAtTime(filterFreq, time);
+      gain.gain.setValueAtTime(gainValue, time);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(c.destination);
+      source.start(time);
+      source.stop(time + duration);
+    }
+
+    function makePluck(time, freq, duration, type, gainValue) {
+      const c = ctx();
+      const osc = c.createOscillator();
+      const filter = c.createBiquadFilter();
+      const gain = c.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, time);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(1800, time);
+      filter.frequency.exponentialRampToValueAtTime(240, time + Math.max(0.04, duration));
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(gainValue, time + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(c.destination);
+      osc.start(time);
+      osc.stop(time + duration + 0.03);
+    }
+
+    function playMetronome(time, unit, bar) {
+      const strong = unit === 0;
+      const secondary = bar.meter.accentUnits.includes(unit);
+      const freq = strong ? 1320 : secondary ? 1080 : 760;
+      makeOsc(time, freq, 0.045, "sine", strong ? 0.18 : secondary ? 0.12 : 0.07);
+    }
+
+    function playKick(time) {
+      const tone = els.drumTone.value;
+      if (tone === "click") return;
+      const c = ctx();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = tone === "electro" ? "square" : "sine";
+      osc.frequency.setValueAtTime(tone === "electro" ? 120 : 95, time);
+      osc.frequency.exponentialRampToValueAtTime(tone === "electro" ? 45 : 42, time + 0.12);
+      gain.gain.setValueAtTime(tone === "brush" ? 0.28 : 0.5, time);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.14);
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.start(time);
+      osc.stop(time + 0.16);
+    }
+
+    function playSnare(time) {
+      const tone = els.drumTone.value;
+      if (tone === "click") return;
+      if (tone === "brush") {
+        noiseBurst(time, 0.14, 0.12, 1800);
+      } else if (tone === "electro") {
+        noiseBurst(time, 0.07, 0.16, 1800);
+        makeOsc(time, 220, 0.06, "square", 0.04);
+      } else {
+        noiseBurst(time, 0.09, 0.2, 900);
+        makeOsc(time, 180, 0.08, "triangle", 0.045);
+      }
+    }
+
+    function playHat(time, strong = false) {
+      const tone = els.drumTone.value;
+      if (tone === "click") return;
+      const gain = tone === "brush" ? 0.04 : tone === "electro" ? 0.09 : tone === "rock" || tone === "arena" ? 0.085 : 0.065;
+      noiseBurst(time, tone === "brush" ? 0.08 : 0.045, strong ? gain * 1.55 : gain, tone === "brush" ? 3000 : 5000);
+    }
+
+    function playCrash(time, strong = false) {
+      const tone = els.drumTone.value;
+      if (tone === "click") return;
+      const gain = tone === "arena" ? 0.2 : 0.15;
+      noiseBurst(time, strong ? 0.55 : 0.38, gain, 7200);
+      makeOsc(time, tone === "arena" ? 420 : 520, 0.22, "triangle", strong ? 0.025 : 0.016);
+    }
+
+    function drumPatternEvents(unit, bar) {
+      const style = els.style.value;
+      const accent = bar.meter.accentUnits.includes(unit);
+      const events = [];
+      const add = (kind, offset = 0, strong = false) => events.push({ kind, offset, strong });
+
+      if (els.drumTone.value === "click") {
+        add("click", 0, unit === 0 || accent);
+        return events;
+      }
+
+      if (els.drumTone.value === "rock" || els.drumTone.value === "arena") {
+        const arena = els.drumTone.value === "arena";
+        if (unit === 0) {
+          add("kick", 0, true);
+          add("crash", 0, true);
+        }
+        if (bar.meter.denominator === 4) {
+          if (unit === 2) add("kick", 0, false);
+          if (unit === 1 || unit === 3) add("snare", 0, true);
+          add("hat", 0, unit === 0 || accent);
+          add("hat", 0.5, false);
+          if (arena && accent && unit !== 0) add("crash", 0, false);
+        } else {
+          if (accent && unit !== 0) add("kick", 0, false);
+          if (accent && unit !== 0) add("snare", 0.5, false);
+          add("hat", 0, unit === 0 || accent);
+          if (arena && accent && unit !== 0) add("crash", 0, false);
+        }
+        return events;
+      }
+
+      if (style === "bossa") {
+        if (unit === 0) add("kick", 0, true);
+        if (bar.meter.denominator === 4 && unit === 2) add("kick", 0.5, false);
+        if (bar.meter.denominator === 4 && (unit === 1 || unit === 3)) add("snare", 0, false);
+        if (bar.meter.denominator === 8 && accent && unit !== 0) add("snare", 0, false);
+        add("hat", 0, accent);
+        if (bar.meter.denominator === 4) add("hat", 0.5, false);
+        return events;
+      }
+
+      if (style === "latin") {
+        if (unit === 0 || (bar.meter.denominator === 4 && unit === 2)) add("kick", 0, unit === 0);
+        if (bar.meter.denominator === 4 && unit === 2) add("kick", 0.5, false);
+        if (bar.meter.denominator === 4 && (unit === 1 || unit === 3)) add("snare", 0, false);
+        if (bar.meter.denominator === 8 && accent && unit !== 0) add("snare", 0, false);
+        add("hat", 0, accent);
+        if (bar.meter.denominator === 4) add("hat", 0.5, false);
+        return events;
+      }
+
+      if (style === "sixteenth") {
+        if (unit === 0 || (bar.meter.denominator === 4 && unit === 2)) add("kick", 0, unit === 0);
+        if (bar.meter.denominator === 4 && (unit === 1 || unit === 3)) add("snare", 0, true);
+        add("hat", 0, accent);
+        if (bar.meter.denominator === 4) {
+          add("hat", 0.25, false);
+          add("hat", 0.5, false);
+          add("hat", 0.75, false);
+        } else {
+          add("hat", 0.5, false);
+        }
+        return events;
+      }
+
+      if (style === "hiphop") {
+        if (unit === 0) add("kick", 0, true);
+        if (bar.meter.denominator === 4 && unit === 2) add("kick", 0.5, false);
+        if (bar.meter.denominator === 4 && (unit === 1 || unit === 3)) add("snare", 0, true);
+        if (bar.meter.denominator === 8 && accent && unit !== 0) add("snare", 0, true);
+        add("hat", 0, accent);
+        if (bar.meter.denominator === 4) {
+          add("hat", 0.5, false);
+          if (unit % 2 === 0) add("hat", 0.75, false);
+        }
+        return events;
+      }
+
+      if (style === "swing" && bar.meter.denominator === 4) {
+        if (unit === 0) add("kick", 0, true);
+        if (accent && unit !== 0) add("kick", 0, false);
+        if (unit % 2 === 1) add("snare", 0, true);
+        add("hat", 0, accent);
+        add("hat", 2 / 3, false);
+        return events;
+      }
+
+      if (unit === 0) add("kick", 0, true);
+      if (accent && unit !== 0 && bar.meter.denominator === 4) add("kick", 0, false);
+      if (bar.meter.denominator === 4 && unit % 2 === 1) add("snare", 0, true);
+      if (bar.meter.denominator === 8 && accent && unit !== 0) add("snare", 0, true);
+      add("hat", 0, accent);
+      if (bar.meter.denominator === 4) add("hat", 0.5, false);
+      return events;
+    }
+
+    function playDrumEvent(event, time) {
+      if (event.kind === "click") return playMetronome(time, event.strong ? 0 : 1, { meter: { accentUnits: event.strong ? [0] : [] } });
+      if (event.kind === "kick") return playKick(time);
+      if (event.kind === "snare") return playSnare(time);
+      if (event.kind === "hat") return playHat(time, event.strong);
+      if (event.kind === "crash") return playCrash(time, event.strong);
+    }
+
+    function playDrums(time, unit, bar, secondsPerUnit) {
+      drumPatternEvents(unit, bar).forEach(event => {
+        playDrumEvent(event, time + event.offset * secondsPerUnit);
+      });
+    }
+
+    function chordIndexAtUnit(bar, unit) {
+      const count = bar.chords.length;
+      if (count === 1) return 0;
+      return Math.min(count - 1, Math.floor(unit * count / bar.meter.units));
+    }
+
+    function chordAtUnit(bar, unit) {
+      return bar.chords[chordIndexAtUnit(bar, unit)];
+    }
+
+    function chordStartUnits(bar) {
+      return bar.chords.map((_, i) => i * bar.meter.units / bar.chords.length);
+    }
+
+    function chordDurationUnits(bar, startUnit) {
+      const nextStart = chordStartUnits(bar).find(unit => unit > startUnit);
+      return (nextStart ?? bar.meter.units) - startUnit;
+    }
+
+    function bassEventPositions(bar) {
+      if (els.bassStyle.value === "twoFeel") return [0, bar.meter.units / 2];
+      return Array.from({ length: bar.meter.units }, (_, unit) => unit);
+    }
+
+    function nextChordForApproach(barIndex) {
+      for (let offset = 1; offset <= bars.length; offset++) {
+        const nextBar = bars[(barIndex + offset) % bars.length];
+        const next = nextBar.chords.find(ch => !ch.isRest);
+        if (next) return next;
+      }
+      return null;
+    }
+
+    function chordBassToneMidis(chord, octave = 2) {
+      if (!chord || chord.isRest) return [];
+      const rootMidi = noteNameToMidi(chord.root, octave);
+      const bassMidi = noteNameToMidi(chord.bass || chord.root, octave);
+      const essentialIntervals = chord.intervals
+        .filter(i => i === 0 || i === 3 || i === 4 || i === 6 || i === 7 || i === 8 || i === 9 || i === 10 || i === 11)
+        .map(i => rootMidi + i);
+      const notes = uniqueSorted([bassMidi, ...essentialIntervals, rootMidi + 12]);
+      return notes.map(n => {
+        while (n < 36) n += 12;
+        while (n > 60) n -= 12;
+        return n;
+      });
+    }
+
+    function nearestChordTone(chord, targetMidi) {
+      const tones = chordBassToneMidis(chord, 2);
+      if (!tones.length) return null;
+      const candidates = [];
+      tones.forEach(tone => {
+        for (let shift = -24; shift <= 24; shift += 12) {
+          const note = tone + shift;
+          if (note >= 36 && note <= 60) candidates.push(note);
+        }
+      });
+      candidates.sort((a, b) => Math.abs(a - targetMidi) - Math.abs(b - targetMidi));
+      return candidates[0];
+    }
+
+    function defaultPianoVoicing(chord) {
+      if (!chord || chord.isRest) return [];
+      const rootMidi = noteNameToMidi(chord.root, 4);
+      const keepChordRoot = chord.bass && chord.bass !== chord.root;
+      let intervals = keepChordRoot ? [...chord.intervals] : chord.intervals.filter(i => i !== 0);
+      if (intervals.length < 3) intervals = chord.intervals;
+      const upperTensionIntervals = new Set([13, 14, 15, 17, 18, 20, 21]);
+      const basicNotes = intervals
+        .filter(i => !upperTensionIntervals.has(i))
+        .map(i => rootMidi + i)
+        .map(n => {
+          while (n < 55) n += 12;
+          while (n > 78) n -= 12;
+          return n;
+        });
+      const tensionAnchor = Math.max(...basicNotes);
+      const upperTensions = intervals
+        .filter(i => upperTensionIntervals.has(i))
+        .map(i => {
+          let n = rootMidi + i;
+          while (n - 12 >= 48 && Math.abs(n - 12 - tensionAnchor) <= Math.abs(n - tensionAnchor)) n -= 12;
+          while (n + 12 <= 84 && Math.abs(n + 12 - tensionAnchor) < Math.abs(n - tensionAnchor)) n += 12;
+          return n;
+        });
+      return uniqueSorted([...basicNotes, ...upperTensions]);
+    }
+
+    function pianoVoicing(chord, barIndex = null, chordIndex = null) {
+      if (!chord || chord.isRest) return [];
+      if (barIndex === null || chordIndex === null) return defaultPianoVoicing(chord);
+      return editableVoicing(barIndex, chordIndex, chord)
+        .filter(note => !note.muted)
+        .map(note => note.midi)
+        .sort((a, b) => a - b);
+    }
+
+    function bassDurationUnits(bar) {
+      return els.bassStyle.value === "twoFeel"
+        ? Math.max(1.25, bar.meter.units / 2 * 0.9)
+        : 0.78;
+    }
+
+    function bassMidiForUnit(barIndex, unit) {
+      const bar = bars[barIndex];
+      const chord = chordAtUnit(bar, unit);
+      if (!chord || chord.isRest) return null;
+
+      const bassRoot = chord.bass || chord.root;
+      const rootMidi = noteNameToMidi(bassRoot, 2);
+      const bassStyle = els.bassStyle.value;
+      if (bassStyle === "root") return rootMidi;
+
+      if (bassStyle === "twoFeel") {
+        if (!bassEventPositions(bar).includes(unit)) return null;
+        if (unit === 0) return rootMidi;
+        const tones = chordBassToneMidis(chord, 2);
+        const third = tones.find(n => Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 3 || Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 4);
+        const fifth = tones.find(n => Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 7 || Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 6 || Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 8);
+        return fifth || third || rootMidi;
+      }
+
+      const lastUnit = unit === bar.meter.units - 1;
+      const tones = chordBassToneMidis(chord, 2);
+      const third = tones.find(n => Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 3 || Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 4);
+      const fifth = tones.find(n => Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 7 || Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 6 || Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 8);
+      const seventh = tones.find(n => Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 10 || Math.abs((n - noteNameToMidi(chord.root, 2)) % 12) === 11);
+
+      if (unit === 0) return rootMidi;
+      if (unit % 4 === 1) return fifth || third || rootMidi + 7;
+      if (unit % 4 === 2) return third || rootMidi + 12;
+      if (lastUnit) {
+        const next = nextChordForApproach(barIndex);
+        const target = next ? noteNameToMidi(next.bass || next.root, 2) : rootMidi;
+        return nearestChordTone(chord, target) || seventh || fifth || rootMidi;
+      }
+      return seventh || fifth || third || rootMidi;
+    }
+
+    function playBass(time, barIndex, unit, secondsPerUnit) {
+      const midi = bassMidiForUnit(barIndex, unit);
+      if (midi === null) return;
+      const freq = midiToFreq(midi);
+      const tone = els.bassTone.value;
+      const duration = Math.max(0.18, secondsPerUnit * bassDurationUnits(bars[barIndex]));
+      if (tone === "sub") makeSustainedOsc(time, freq, duration, "sine", 0.15, 0.02, 0.08);
+      else if (tone === "sustain") makeSustainedOsc(time, freq, duration, "triangle", 0.14, 0.015, 0.1);
+      else if (tone === "uprightLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.12, 0.018, 0.16);
+      else if (tone === "electricLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.115, 0.012, 0.12);
+      else if (tone === "fretless") makeSustainedOsc(time, freq, duration * 1.2, "triangle", 0.13, 0.02, 0.13);
+      else if (tone === "synth") makeSustainedOsc(time, freq, duration, "square", 0.1, 0.008, 0.07);
+      else if (tone === "electric") makePluck(time, freq, duration, "sawtooth", 0.13);
+      else if (tone === "pluck") makePluck(time, freq, 0.16, "square", 0.11);
+      else makePluck(time, freq, Math.max(0.24, secondsPerUnit * bassDurationUnits(bars[barIndex])), "sawtooth", 0.14);
+    }
+
+    function playPiano(time, chord, duration, barIndex, chordIndex) {
+      const notes = pianoVoicing(chord, barIndex, chordIndex);
+      const tone = els.pianoTone.value;
+      notes.forEach((midi, i) => {
+        const t = time + i * 0.006;
+        const freq = midiToFreq(midi);
+        if (tone === "bright") makeOsc(t, freq, duration * 0.85, "sawtooth", 0.032);
+        else if (tone === "acoustic") {
+          makePluck(t, freq, duration * 0.65, "triangle", 0.06);
+          makeOsc(t, freq * 2, duration * 0.25, "sine", 0.012);
+        }
+        else if (tone === "warmLong") makeSustainedOsc(t, freq, duration * 1.8, "triangle", 0.04, 0.04, 0.48);
+        else if (tone === "organ") makeSustainedOsc(t, freq, duration * 1.35, "square", 0.022, 0.02, 0.22);
+        else if (tone === "pad") makeSustainedOsc(t, freq, duration * 1.8, "sine", 0.035, 0.16, 0.45);
+        else if (tone === "strings") makeSustainedOsc(t, freq, duration * 1.9, "sawtooth", 0.028, 0.11, 0.42);
+        else if (tone === "bell") makeOsc(t, freq, duration * 0.6, "sine", 0.045);
+        else makeSustainedOsc(t, freq, duration * 1.1, "triangle", 0.042, 0.025, 0.2);
+      });
+    }
+
+    function scheduleUnit(time, barIndex, unit, includeUi = true) {
+      const bar = bars[barIndex];
+      const secondsPerUnit = unitSeconds(bar.meter);
+      const chord = chordAtUnit(bar, unit);
+      const chordIndex = chordIndexAtUnit(bar, unit);
+
+      if (els.metronomeOn.checked) playMetronome(time, unit, bar);
+      if (els.drumsOn.checked) playDrums(time, unit, bar, secondsPerUnit);
+      if (els.bassOn.checked && bassEventPositions(bar).includes(unit)) playBass(time, barIndex, unit, secondsPerUnit);
+
+      if (els.pianoOn.checked && chord && !chord.isRest) {
+        const starts = chordStartUnits(bar);
+        const shouldComp = starts.includes(unit) || bar.meter.accentUnits.includes(unit) || unit === 0;
+        const hasFractionalStarts = starts.some(start => !Number.isInteger(start));
+        const duration = hasFractionalStarts && starts.includes(unit)
+          ? secondsPerUnit * chordDurationUnits(bar, unit)
+          : secondsPerUnit * 1.35;
+        if (shouldComp) playPiano(time + 0.015, chord, duration, barIndex, chordIndex);
+      }
+
+      if (unit === 0) {
+        const fractionalChordStarts = chordStartUnits(bar).filter(start => start > 0 && !Number.isInteger(start));
+        if (els.pianoOn.checked) {
+          fractionalChordStarts.forEach(start => {
+            const fractionalChord = chordAtUnit(bar, start);
+            if (fractionalChord && !fractionalChord.isRest) {
+              playPiano(time + start * secondsPerUnit + 0.015, fractionalChord, secondsPerUnit * chordDurationUnits(bar, start), barIndex, chordIndexAtUnit(bar, start));
+            }
+          });
+        }
+        if (els.bassOn.checked) {
+          bassEventPositions(bar).filter(position => position > 0 && !Number.isInteger(position)).forEach(position => {
+            playBass(time + position * secondsPerUnit, barIndex, position, secondsPerUnit);
+          });
+        }
+      }
+
+      if (includeUi && audioCtx) {
+        const delay = Math.max(0, (time - audioCtx.currentTime) * 1000);
+        setTimeout(() => { if (isPlaying) setActiveBar(barIndex); }, delay);
+      }
+    }
+
+    function advanceUnit() {
+      const bar = bars[currentBar];
+      nextNoteTime += unitSeconds(bar.meter);
+      currentUnit++;
+      if (currentUnit >= bar.meter.units) {
+        currentUnit = 0;
+        currentBar = (currentBar + 1) % bars.length;
+      }
+    }
+
+    function scheduler() {
+      while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+        scheduleUnit(nextNoteTime, currentBar, currentUnit);
+        advanceUnit();
+      }
+    }
+
+    async function start(startBarIndex = 0) {
+      if (!refreshChart(false)) return;
+      if (!bars.length) return;
+      createAudio();
+      await audioCtx.resume();
+      stop(false);
+      isPlaying = true;
+      currentBar = Math.max(0, Math.min(bars.length - 1, Number.isInteger(startBarIndex) ? startBarIndex : 0));
+      currentUnit = 0;
+      nextNoteTime = audioCtx.currentTime + 0.08;
+      setActiveBar(currentBar);
+      schedulerTimer = setInterval(scheduler, lookahead);
+    }
+
+    function stop(updateUi = true) {
+      isPlaying = false;
+      if (schedulerTimer) {
+        clearInterval(schedulerTimer);
+        schedulerTimer = null;
+      }
+      if (updateUi) {
+        document.querySelectorAll(".bar").forEach(el => el.classList.remove("active"));
+        els.now.textContent = "Stopped";
+      }
+    }
+
+    function getSavedCharts() {
+      try {
+        return JSON.parse(localStorage.getItem(storageKey)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setSavedCharts(data) {
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+
+    function serializeVoicingOverrides() {
+      return Object.fromEntries([...voicingOverrides.entries()].map(([key, notes]) => [
+        key,
+        notes.map(note => ({ id: note.id, midi: note.midi, muted: Boolean(note.muted) }))
+      ]));
+    }
+
+    function restoreVoicingOverrides(savedOverrides) {
+      voicingOverrides.clear();
+      voicingSignatures.clear();
+      if (!savedOverrides || typeof savedOverrides !== "object" || Array.isArray(savedOverrides)) return;
+      Object.entries(savedOverrides).forEach(([key, notes]) => {
+        if (!/^\d+:\d+$/.test(key) || !Array.isArray(notes)) return;
+        const restoredNotes = notes
+          .filter(note => Number.isInteger(note?.id) && Number.isFinite(note?.midi))
+          .map(note => ({
+            id: note.id,
+            midi: Math.max(36, Math.min(96, Math.round(note.midi))),
+            muted: Boolean(note.muted)
+          }));
+        const chord = chordForVoicingKey(key);
+        if (restoredNotes.length && chord && !chord.isRest) {
+          voicingOverrides.set(key, restoredNotes);
+          voicingSignatures.set(key, chordSignature(chord));
+        }
+      });
+    }
+
+    function currentChartData() {
+      return {
+        name: els.chartName.value.trim() || "Untitled Chart",
+        chart: els.input.value,
+        tempo: Number(els.tempo.value),
+        style: els.style.value,
+        meter: els.meter.value,
+        pianoTone: els.pianoTone.value,
+        bassTone: els.bassTone.value,
+        bassStyle: els.bassStyle.value,
+        drumTone: els.drumTone.value,
+        toggles: {
+          metronome: els.metronomeOn.checked,
+          drums: els.drumsOn.checked,
+          bass: els.bassOn.checked,
+          piano: els.pianoOn.checked
+        },
+        voicingOverrides: serializeVoicingOverrides(),
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function applyChartData(data) {
+      els.chartName.value = data.name || "Untitled Chart";
+      els.input.value = data.chart || "";
+      els.tempo.value = String(data.tempo || 140);
+      els.tempoValue.textContent = els.tempo.value;
+      els.style.value = data.style || "swing";
+      els.meter.value = data.meter || "4/4";
+      els.pianoTone.value = data.pianoTone || "warm";
+      els.bassTone.value = data.bassTone || "upright";
+      els.bassStyle.value = data.bassStyle || "walking";
+      els.drumTone.value = data.drumTone || "dry";
+      if (data.toggles) {
+        els.metronomeOn.checked = data.toggles.metronome !== false;
+        els.drumsOn.checked = data.toggles.drums !== false;
+        els.bassOn.checked = data.toggles.bass !== false;
+        els.pianoOn.checked = data.toggles.piano !== false;
+      }
+      if (refreshChart()) restoreVoicingOverrides(data.voicingOverrides);
+    }
+
+    function updateSavedList() {
+      const data = getSavedCharts();
+      const names = Object.keys(data).sort((a, b) => a.localeCompare(b));
+      els.savedCharts.innerHTML = "";
+      if (!names.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No saved charts";
+        els.savedCharts.appendChild(option);
+        return;
+      }
+      names.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        els.savedCharts.appendChild(option);
+      });
+    }
+
+    function saveChart() {
+      const data = currentChartData();
+      const saved = getSavedCharts();
+      saved[data.name] = data;
+      setSavedCharts(saved);
+      updateSavedList();
+      els.savedCharts.value = data.name;
+      showMessage(`Saved "${data.name}".`);
+    }
+
+    function loadChart() {
+      const name = els.savedCharts.value;
+      const saved = getSavedCharts();
+      if (!name || !saved[name]) return showMessage("Choose a saved chart first.", true);
+      applyChartData(saved[name]);
+      showMessage(`Loaded "${name}".`);
+    }
+
+    function deleteChart() {
+      const name = els.savedCharts.value;
+      const saved = getSavedCharts();
+      if (!name || !saved[name]) return showMessage("Choose a saved chart first.", true);
+      delete saved[name];
+      setSavedCharts(saved);
+      updateSavedList();
+      showMessage(`Deleted "${name}".`);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function safeFileName(name, ext) {
+      return `${(name || "jazz-chart").replace(/[^a-z0-9_-]+/gi, "-").replace(/^-|-$/g, "") || "jazz-chart"}.${ext}`;
+    }
+
+    function exportJson() {
+      const data = currentChartData();
+      downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), safeFileName(data.name, "json"));
+      showMessage("JSON exported.");
+    }
+
+    function importJsonFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          applyChartData(data);
+          showMessage(`Imported "${data.name || "Untitled Chart"}".`);
+        } catch (e) {
+          showMessage(`Import failed: ${e.message}`, true);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function chartDurationSeconds(parsedBars = bars) {
+      return parsedBars.reduce((sum, bar) => sum + bar.meter.units * unitSeconds(bar.meter), 0);
+    }
+
+    function drumMidiNote(event) {
+      if (event.kind === "kick") return 36;
+      if (event.kind === "snare") return 38;
+      if (event.kind === "click") return 37;
+      if (event.kind === "crash") return 49;
+      return event.strong ? 42 : 44;
+    }
+
+    function collectArrangementEvents() {
+      const events = { piano: [], bass: [], drums: [], meta: [] };
+      let seconds = 0;
+      let ticks = 0;
+
+      bars.forEach((bar, barIndex) => {
+        const barStartTick = ticks;
+        events.meta.push({ tick: ticks, meter: bar.meter });
+        const starts = chordStartUnits(bar);
+        for (let unit = 0; unit < bar.meter.units; unit++) {
+          const secPerUnit = unitSeconds(bar.meter);
+          const tickPerUnit = unitTicks(bar.meter);
+          const chord = chordAtUnit(bar, unit);
+          const chordIndex = chordIndexAtUnit(bar, unit);
+          const accent = bar.meter.accentUnits.includes(unit);
+
+          if (els.pianoOn.checked && chord && !chord.isRest && (starts.includes(unit) || accent || unit === 0)) {
+            pianoVoicing(chord, barIndex, chordIndex).forEach((note, i) => {
+              events.piano.push({ tick: ticks + Math.round(i * 3), note, dur: Math.round(tickPerUnit * 1.25), vel: 68 });
+            });
+          }
+
+          if (els.bassOn.checked && bassEventPositions(bar).includes(unit)) {
+            const bass = bassMidiForUnit(barIndex, unit);
+            if (bass !== null) events.bass.push({ tick: ticks, note: bass, dur: Math.round(tickPerUnit * bassDurationUnits(bar)), vel: 82 });
+          }
+
+          if (els.drumsOn.checked) {
+            drumPatternEvents(unit, bar).forEach(event => {
+              events.drums.push({
+                tick: ticks + Math.round(event.offset * tickPerUnit),
+                note: drumMidiNote(event),
+                dur: event.kind === "hat" ? 35 : 80,
+                vel: event.strong ? 88 : event.kind === "hat" ? 52 : 70
+              });
+            });
+          }
+
+          ticks += tickPerUnit;
+          seconds += secPerUnit;
+        }
+
+        const tickPerUnit = unitTicks(bar.meter);
+        if (els.pianoOn.checked) {
+          starts.filter(start => start > 0 && !Number.isInteger(start)).forEach(start => {
+            const chord = chordAtUnit(bar, start);
+            if (!chord || chord.isRest) return;
+            pianoVoicing(chord, barIndex, chordIndexAtUnit(bar, start)).forEach((note, i) => {
+              events.piano.push({
+                tick: barStartTick + Math.round(start * tickPerUnit) + Math.round(i * 3),
+                note,
+                dur: Math.round(chordDurationUnits(bar, start) * tickPerUnit),
+                vel: 68
+              });
+            });
+          });
+        }
+        if (els.bassOn.checked) {
+          bassEventPositions(bar).filter(position => position > 0 && !Number.isInteger(position)).forEach(position => {
+            const bass = bassMidiForUnit(barIndex, position);
+            if (bass !== null) {
+              events.bass.push({
+                tick: barStartTick + Math.round(position * tickPerUnit),
+                note: bass,
+                dur: Math.round(tickPerUnit * bassDurationUnits(bar)),
+                vel: 82
+              });
+            }
+          });
+        }
+      });
+
+      return { events, totalTicks: ticks, totalSeconds: seconds };
+    }
+
+    function varLen(value) {
+      let buffer = value & 0x7f;
+      const bytes = [];
+      while ((value >>= 7)) {
+        buffer <<= 8;
+        buffer |= ((value & 0x7f) | 0x80);
+      }
+      while (true) {
+        bytes.push(buffer & 0xff);
+        if (buffer & 0x80) buffer >>= 8;
+        else break;
+      }
+      return bytes;
+    }
+
+    function pushTextMeta(events, delta, type, text) {
+      const data = [...new TextEncoder().encode(text)];
+      events.push(...varLen(delta), 0xff, type, ...varLen(data.length), ...data);
+    }
+
+    function pushMidiEvent(events, delta, status, data1, data2) {
+      events.push(...varLen(delta), status, data1 & 0x7f, data2 & 0x7f);
+    }
+
+    function trackChunk(events) {
+      const len = events.length;
+      return [
+        0x4d, 0x54, 0x72, 0x6b,
+        (len >>> 24) & 0xff, (len >>> 16) & 0xff, (len >>> 8) & 0xff, len & 0xff,
+        ...events
+      ];
+    }
+
+    function midiTrackFromNotes(name, channel, program, notes) {
+      const events = [];
+      pushTextMeta(events, 0, 0x03, name);
+      pushMidiEvent(events, 0, 0xc0 | channel, program, 0);
+
+      const points = [];
+      notes.forEach(n => {
+        points.push({ tick: n.tick, on: true, note: n.note, vel: n.vel });
+        points.push({ tick: n.tick + n.dur, on: false, note: n.note, vel: 0 });
+      });
+      points.sort((a, b) => a.tick - b.tick || Number(a.on) - Number(b.on));
+
+      let lastTick = 0;
+      points.forEach(p => {
+        const delta = Math.max(0, Math.round(p.tick - lastTick));
+        lastTick = p.tick;
+        pushMidiEvent(events, delta, (p.on ? 0x90 : 0x80) | channel, p.note, p.vel);
+      });
+      events.push(0x00, 0xff, 0x2f, 0x00);
+      return trackChunk(events);
+    }
+
+    function metaTrack(metaEvents, totalTicks) {
+      const events = [];
+      pushTextMeta(events, 0, 0x03, "Jazz Chart Lab");
+      const mpqn = Math.round(60000000 / Number(els.tempo.value));
+      events.push(0x00, 0xff, 0x51, 0x03, (mpqn >>> 16) & 0xff, (mpqn >>> 8) & 0xff, mpqn & 0xff);
+
+      let lastTick = 0;
+      const seen = new Set();
+      metaEvents.forEach(item => {
+        const key = `${item.tick}:${item.meter.label}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        const delta = Math.max(0, item.tick - lastTick);
+        lastTick = item.tick;
+        const dd = item.meter.denominator === 8 ? 3 : 2;
+        events.push(...varLen(delta), 0xff, 0x58, 0x04, item.meter.numerator & 0xff, dd, 24, 8);
+      });
+
+      events.push(...varLen(Math.max(0, totalTicks - lastTick)), 0xff, 0x2f, 0x00);
+      return trackChunk(events);
+    }
+
+    function exportMidi() {
+      if (!refreshChart(false)) return;
+      const { events, totalTicks } = collectArrangementEvents();
+      const tracks = [
+        metaTrack(events.meta, totalTicks),
+        midiTrackFromNotes("Piano", 0, midiPrograms[els.pianoTone.value] || 4, events.piano),
+        midiTrackFromNotes("Bass", 1, midiPrograms[els.bassTone.value] || 32, events.bass),
+        midiTrackFromNotes("Drums", 9, 0, events.drums)
+      ];
+
+      const header = [
+        0x4d, 0x54, 0x68, 0x64,
+        0x00, 0x00, 0x00, 0x06,
+        0x00, 0x01,
+        0x00, tracks.length,
+        (ticksPerQuarter >>> 8) & 0xff, ticksPerQuarter & 0xff
+      ];
+
+      const bytes = new Uint8Array([...header, ...tracks.flat()]);
+      downloadBlob(new Blob([bytes], { type: "audio/midi" }), safeFileName(els.chartName.value, "mid"));
+      showMessage("MIDI exported.");
+    }
+
+    function audioBufferToWav(buffer) {
+      const channels = buffer.numberOfChannels;
+      const sampleRate = buffer.sampleRate;
+      const samples = buffer.length;
+      const blockAlign = channels * 2;
+      const byteRate = sampleRate * blockAlign;
+      const dataSize = samples * blockAlign;
+      const array = new ArrayBuffer(44 + dataSize);
+      const view = new DataView(array);
+      let offset = 0;
+
+      function writeString(value) {
+        for (let i = 0; i < value.length; i++) view.setUint8(offset++, value.charCodeAt(i));
+      }
+      function write16(value) {
+        view.setUint16(offset, value, true);
+        offset += 2;
+      }
+      function write32(value) {
+        view.setUint32(offset, value, true);
+        offset += 4;
+      }
+
+      writeString("RIFF");
+      write32(36 + dataSize);
+      writeString("WAVE");
+      writeString("fmt ");
+      write32(16);
+      write16(1);
+      write16(channels);
+      write32(sampleRate);
+      write32(byteRate);
+      write16(blockAlign);
+      write16(16);
+      writeString("data");
+      write32(dataSize);
+
+      const channelData = [];
+      for (let ch = 0; ch < channels; ch++) channelData.push(buffer.getChannelData(ch));
+      for (let i = 0; i < samples; i++) {
+        for (let ch = 0; ch < channels; ch++) {
+          const s = Math.max(-1, Math.min(1, channelData[ch][i]));
+          view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+          offset += 2;
+        }
+      }
+      return array;
+    }
+
+    async function exportWav() {
+      if (!refreshChart(false)) return;
+      stop(true);
+      showMessage("Rendering WAV...");
+      const duration = Math.max(1, chartDurationSeconds() + 1);
+      const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      if (!Offline) return showMessage("OfflineAudioContext is not supported in this browser.", true);
+
+      renderCtx = new Offline(2, Math.ceil(44100 * duration), 44100);
+      let time = 0.08;
+      bars.forEach((bar, barIndex) => {
+        for (let unit = 0; unit < bar.meter.units; unit++) {
+          scheduleUnit(time, barIndex, unit, false);
+          time += unitSeconds(bar.meter);
+        }
+      });
+
+      try {
+        const buffer = await renderCtx.startRendering();
+        renderCtx = null;
+        const wav = audioBufferToWav(buffer);
+        downloadBlob(new Blob([wav], { type: "audio/wav" }), safeFileName(els.chartName.value, "wav"));
+        showMessage("WAV exported.");
+      } catch (e) {
+        renderCtx = null;
+        showMessage(`WAV export failed: ${e.message}`, true);
+      }
+    }
+
+    els.tempo.addEventListener("input", () => {
+      els.tempoValue.textContent = els.tempo.value;
+    });
+
+    els.input.addEventListener("input", () => {
+      clearTimeout(inputRefreshTimer);
+      inputRefreshTimer = setTimeout(() => refreshChart(false), 350);
+    });
+
+    els.parse.addEventListener("click", () => refreshChart(false));
+    els.play.addEventListener("click", () => start());
+    els.stop.addEventListener("click", () => stop(true));
+    els.meter.addEventListener("change", () => refreshChart(false));
+    els.save.addEventListener("click", saveChart);
+    els.load.addEventListener("click", loadChart);
+    els.delete.addEventListener("click", deleteChart);
+    els.exportJson.addEventListener("click", exportJson);
+    els.importJson.addEventListener("click", () => els.importFile.click());
+    els.importFile.addEventListener("change", () => {
+      const file = els.importFile.files[0];
+      if (file) importJsonFile(file);
+      els.importFile.value = "";
+    });
+    els.midi.addEventListener("click", exportMidi);
+    els.wav.addEventListener("click", exportWav);
+
+    document.addEventListener("keydown", event => {
+      if (event.code !== "Space" || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.matches("textarea, input, select, button, [contenteditable='true']") || target.isContentEditable)) return;
+      event.preventDefault();
+      if (isPlaying) stop(true);
+      else start(selectedChord?.barIndex ?? 0);
+    });
+
+    updateSavedList();
+    refreshChart();
+  </script>
+</body>
+</html>
