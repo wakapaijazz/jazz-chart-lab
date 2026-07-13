@@ -1,0 +1,905 @@
+{
+  "name": "How My Heart Sings",
+  "chart": "|:<A>[3/4] E-7(11) | A-7 | D-7 | G7sus4 |CM7 | FM7 | B-7b5 | E7alt |\n[1] <B>A- | E7/G# | A-7/G | F#-7b5 |\nE/B | Edim(M7)/B | F#-7/B | B7(9,13) |\n[4/4] | <C>DM7/E | AM7/B | DM7/G# | AM7 | CM7/D | GM7/A | F#-7b5 | B7(+9) :|\n[2] <D>[3/4] A- | E7 | A-7 | D7 D#dim | E-7 | A-7 | Ab7(13) | G7 | CM7 | G-7(11) | F#-7b5 | B7 |",
+  "tempo": 200,
+  "style": "swing",
+  "meter": "4/4",
+  "pianoTone": "warmLong",
+  "bassTone": "upright",
+  "bassStyle": "twoFeel",
+  "drumTone": "brush",
+  "toggles": {
+    "metronome": false,
+    "drums": true,
+    "bass": true,
+    "piano": true
+  },
+  "voicingOverrides": {
+    "0:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 74,
+        "muted": false
+      }
+    ],
+    "3:0": [
+      {
+        "id": 0,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 65,
+        "muted": false
+      }
+    ],
+    "2:0": [
+      {
+        "id": 0,
+        "midi": 65,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 72,
+        "muted": false
+      }
+    ],
+    "7:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 70,
+        "muted": true
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": true
+      },
+      {
+        "id": 3,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 4,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 5,
+        "midi": 77,
+        "muted": true
+      },
+      {
+        "id": 6,
+        "midi": 79,
+        "muted": true
+      }
+    ],
+    "15:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 73,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 78,
+        "muted": true
+      },
+      {
+        "id": 4,
+        "midi": 80,
+        "muted": false
+      }
+    ],
+    "14:0": [
+      {
+        "id": 0,
+        "midi": 66,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 73,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "16:0": [
+      {
+        "id": 0,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 66,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 73,
+        "muted": false
+      }
+    ],
+    "17:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 73,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "18:0": [
+      {
+        "id": 0,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 66,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 73,
+        "muted": false
+      }
+    ],
+    "19:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 73,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "20:0": [
+      {
+        "id": 0,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 71,
+        "muted": false
+      }
+    ],
+    "21:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 66,
+        "muted": false
+      }
+    ],
+    "22:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "23:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": true
+      },
+      {
+        "id": 2,
+        "midi": 75,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 78,
+        "muted": false
+      }
+    ],
+    "27:0": [
+      {
+        "id": 0,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 65,
+        "muted": false
+      }
+    ],
+    "31:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 70,
+        "muted": true
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": true
+      },
+      {
+        "id": 3,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 4,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 5,
+        "midi": 77,
+        "muted": true
+      },
+      {
+        "id": 6,
+        "midi": 79,
+        "muted": true
+      }
+    ],
+    "38:0": [
+      {
+        "id": 0,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 75,
+        "muted": true
+      },
+      {
+        "id": 2,
+        "midi": 77,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 66,
+        "muted": false
+      }
+    ],
+    "41:0": [
+      {
+        "id": 0,
+        "midi": 70,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 77,
+        "muted": false
+      }
+    ],
+    "1:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "4:0": [
+      {
+        "id": 0,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": false
+      }
+    ],
+    "5:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "6:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 77,
+        "muted": false
+      }
+    ],
+    "8:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "9:0": [
+      {
+        "id": 0,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 74,
+        "muted": false
+      }
+    ],
+    "10:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "11:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "12:0": [
+      {
+        "id": 0,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": false
+      }
+    ],
+    "13:0": [
+      {
+        "id": 0,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 70,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 75,
+        "muted": false
+      }
+    ],
+    "24:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 3,
+        "midi": 74,
+        "muted": false
+      }
+    ],
+    "25:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "26:0": [
+      {
+        "id": 0,
+        "midi": 65,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 72,
+        "muted": false
+      }
+    ],
+    "28:0": [
+      {
+        "id": 0,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": false
+      }
+    ],
+    "29:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "30:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 77,
+        "muted": false
+      }
+    ],
+    "32:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "33:0": [
+      {
+        "id": 0,
+        "midi": 68,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 74,
+        "muted": false
+      }
+    ],
+    "34:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "35:0": [
+      {
+        "id": 0,
+        "midi": 66,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 72,
+        "muted": false
+      }
+    ],
+    "35:1": [
+      {
+        "id": 0,
+        "midi": 63,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 66,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 69,
+        "muted": false
+      }
+    ],
+    "36:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 74,
+        "muted": false
+      }
+    ],
+    "37:0": [
+      {
+        "id": 0,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "39:0": [
+      {
+        "id": 0,
+        "midi": 71,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 74,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 77,
+        "muted": false
+      }
+    ],
+    "40:0": [
+      {
+        "id": 0,
+        "midi": 64,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 67,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 71,
+        "muted": false
+      }
+    ],
+    "42:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 72,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 76,
+        "muted": false
+      }
+    ],
+    "43:0": [
+      {
+        "id": 0,
+        "midi": 69,
+        "muted": false
+      },
+      {
+        "id": 1,
+        "midi": 75,
+        "muted": false
+      },
+      {
+        "id": 2,
+        "midi": 78,
+        "muted": false
+      }
+    ]
+  },
+  "savedAt": "2026-07-13T01:26:09.598Z"
+}

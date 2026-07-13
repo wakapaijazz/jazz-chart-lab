@@ -3,6 +3,14 @@
     {
       "name": "Starter Chart",
       "file": "starter-chart.json"
+    },
+    {
+      "name": "How My Heart Sings",
+      "file": "How-My-Heart-Sings.json"
+    },
+    {
+      "name": "Will, Part 1",
+      "file": "Will-Part-1.json"
     }
   ]
 }
