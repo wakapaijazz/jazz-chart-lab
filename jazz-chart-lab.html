@@ -478,6 +478,7 @@
               <option value="warmLong">Warm Electric Long</option>
               <option value="bright">Bright Keys</option>
               <option value="acoustic">Acoustic Piano</option>
+              <option value="sampleGrand">Sampled Grand Piano</option>
               <option value="organ">Organ</option>
               <option value="pad">Sustained Pad</option>
               <option value="strings">Strings</option>
@@ -492,6 +493,7 @@
               <option value="electro">Electronic</option>
               <option value="rock">Rock Kit</option>
               <option value="arena">Arena Kit</option>
+              <option value="sampleStudio">Sampled Studio Kit</option>
               <option value="click">Click Only</option>
             </select>
           </div>
@@ -502,6 +504,8 @@
               <option value="uprightLong">Upright Long</option>
               <option value="electric">Electric</option>
               <option value="electricLong">Electric Long</option>
+              <option value="sampleUpright">Sampled Acoustic Bass</option>
+              <option value="sampleElectric">Sampled Electric Bass</option>
               <option value="fretless">Fretless Bass</option>
               <option value="synth">Synth Bass</option>
               <option value="sustain">Sustained Bass</option>
@@ -591,6 +595,7 @@
     </div>
   </div>
 
+  <script src="https://surikov.github.io/webaudiofont/npm/dist/WebAudioFontPlayer.js"></script>
   <script>
     const els = {
       input: document.getElementById("chartInput"),
@@ -637,6 +642,9 @@
     let currentBar = 0;
     let currentUnit = 0;
     let nextNoteTime = 0;
+    let samplePlayer = null;
+    const loadedSampleScripts = new Map();
+    const preparedSampleContexts = new WeakMap();
 
     const lookahead = 25;
     const scheduleAheadTime = 0.12;
@@ -644,6 +652,36 @@
     const bundledChartIndexUrl = "charts/index.json";
     const ticksPerQuarter = 480;
     const bundledCharts = new Map();
+    const samplePresetDefinitions = {
+      pianoGrand: {
+        url: "https://surikov.github.io/webaudiofontdata/sound/0000_GeneralUserGS_sf2_file.js",
+        variable: "_tone_0000_GeneralUserGS_sf2_file"
+      },
+      bassAcoustic: {
+        url: "https://surikov.github.io/webaudiofontdata/sound/0320_GeneralUserGS_sf2_file.js",
+        variable: "_tone_0320_GeneralUserGS_sf2_file"
+      },
+      bassElectric: {
+        url: "https://surikov.github.io/webaudiofontdata/sound/0330_GeneralUserGS_sf2_file.js",
+        variable: "_tone_0330_GeneralUserGS_sf2_file"
+      },
+      drumKick: {
+        url: "https://surikov.github.io/webaudiofontdata/sound/12836_0_FluidR3_GM_sf2_file.js",
+        variable: "_drum_36_0_FluidR3_GM_sf2_file"
+      },
+      drumSnare: {
+        url: "https://surikov.github.io/webaudiofontdata/sound/12838_0_FluidR3_GM_sf2_file.js",
+        variable: "_drum_38_0_FluidR3_GM_sf2_file"
+      },
+      drumHat: {
+        url: "https://surikov.github.io/webaudiofontdata/sound/12842_0_FluidR3_GM_sf2_file.js",
+        variable: "_drum_42_0_FluidR3_GM_sf2_file"
+      },
+      drumCrash: {
+        url: "https://surikov.github.io/webaudiofontdata/sound/12849_0_FluidR3_GM_sf2_file.js",
+        variable: "_drum_49_0_FluidR3_GM_sf2_file"
+      }
+    };
 
     const NOTE_TO_SEMITONE = {
       C: 0, "C#": 1, Db: 1,
@@ -1302,6 +1340,69 @@
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
 
+    function loadSampleScript(url) {
+      if (loadedSampleScripts.has(url)) return loadedSampleScripts.get(url);
+      const promise = new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`Could not load sample preset: ${url}`));
+        document.head.appendChild(script);
+      });
+      loadedSampleScripts.set(url, promise);
+      return promise;
+    }
+
+    function selectedSamplePresetKeys() {
+      const keys = [];
+      if (els.pianoTone.value === "sampleGrand") keys.push("pianoGrand");
+      if (els.bassTone.value === "sampleUpright") keys.push("bassAcoustic");
+      if (els.bassTone.value === "sampleElectric") keys.push("bassElectric");
+      if (els.drumTone.value === "sampleStudio") keys.push("drumKick", "drumSnare", "drumHat", "drumCrash");
+      return keys;
+    }
+
+    async function prepareSamplePreset(key, audioContext) {
+      const definition = samplePresetDefinitions[key];
+      if (!definition || !window.WebAudioFontPlayer) throw new Error("Sample player is unavailable.");
+      await loadSampleScript(definition.url);
+      if (!window[definition.variable]) throw new Error(`Sample preset ${key} did not load.`);
+      if (!samplePlayer) samplePlayer = new window.WebAudioFontPlayer();
+      samplePlayer.loader.decodeAfterLoading(audioContext, definition.variable);
+      await new Promise(resolve => samplePlayer.loader.waitLoad(resolve));
+    }
+
+    async function prepareSelectedSamples(audioContext) {
+      const keys = selectedSamplePresetKeys();
+      if (!keys.length) return;
+      const previous = preparedSampleContexts.get(audioContext) || new Set();
+      const missing = keys.filter(key => !previous.has(key));
+      if (!missing.length) return;
+      await Promise.all(missing.map(key => prepareSamplePreset(key, audioContext)));
+      missing.forEach(key => previous.add(key));
+      preparedSampleContexts.set(audioContext, previous);
+    }
+
+    function playSamplePreset(key, time, midi, duration, volume) {
+      const definition = samplePresetDefinitions[key];
+      const c = ctx();
+      const preset = definition && window[definition.variable];
+      if (!samplePlayer || !preset) return false;
+      if (c === renderCtx && !c.__jazzChartOfflineResumePatched) {
+        try {
+          Object.defineProperty(c, "resume", {
+            configurable: true,
+            value: () => Promise.resolve()
+          });
+          Object.defineProperty(c, "__jazzChartOfflineResumePatched", { value: true });
+        } catch {
+          // Some browsers already treat OfflineAudioContext.resume as a no-op.
+        }
+      }
+      samplePlayer.queueWaveTable(c, c.destination, preset, time, midi, Math.max(0.04, duration), volume);
+      return true;
+    }
+
     function makeOsc(time, freq, duration, type, gainValue, destination = null) {
       const c = ctx();
       const osc = c.createOscillator();
@@ -1392,6 +1493,7 @@
     function playKick(time) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
+      if (tone === "sampleStudio" && playSamplePreset("drumKick", time, 36, 0.45, 0.8)) return;
       const c = ctx();
       const osc = c.createOscillator();
       const gain = c.createGain();
@@ -1409,6 +1511,7 @@
     function playSnare(time) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
+      if (tone === "sampleStudio" && playSamplePreset("drumSnare", time, 38, 0.45, 0.72)) return;
       if (tone === "brush") {
         noiseBurst(time, 0.14, 0.12, 1800);
       } else if (tone === "electro") {
@@ -1423,6 +1526,7 @@
     function playHat(time, strong = false) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
+      if (tone === "sampleStudio" && playSamplePreset("drumHat", time, 42, strong ? 0.19 : 0.13, strong ? 0.48 : 0.32)) return;
       const gain = tone === "brush" ? 0.04 : tone === "electro" ? 0.09 : tone === "rock" || tone === "arena" ? 0.085 : 0.065;
       noiseBurst(time, tone === "brush" ? 0.08 : 0.045, strong ? gain * 1.55 : gain, tone === "brush" ? 3000 : 5000);
     }
@@ -1430,6 +1534,7 @@
     function playCrash(time, strong = false) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
+      if (tone === "sampleStudio" && playSamplePreset("drumCrash", time, 49, strong ? 1.8 : 1.1, strong ? 0.56 : 0.38)) return;
       const gain = tone === "arena" ? 0.2 : 0.15;
       noiseBurst(time, strong ? 0.55 : 0.38, gain, 7200);
       makeOsc(time, tone === "arena" ? 420 : 520, 0.22, "triangle", strong ? 0.025 : 0.016);
@@ -1692,6 +1797,8 @@
       const freq = midiToFreq(midi);
       const tone = els.bassTone.value;
       const duration = Math.max(0.18, secondsPerUnit * bassDurationUnits(bars[barIndex]));
+      if (tone === "sampleUpright" && playSamplePreset("bassAcoustic", time, midi, duration * 1.08, 0.7)) return;
+      if (tone === "sampleElectric" && playSamplePreset("bassElectric", time, midi, duration * 1.05, 0.66)) return;
       if (tone === "sub") makeSustainedOsc(time, freq, duration, "sine", 0.15, 0.02, 0.08);
       else if (tone === "sustain") makeSustainedOsc(time, freq, duration, "triangle", 0.14, 0.015, 0.1);
       else if (tone === "uprightLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.12, 0.018, 0.16);
@@ -1709,6 +1816,7 @@
       notes.forEach((midi, i) => {
         const t = time + i * 0.006;
         const freq = midiToFreq(midi);
+        if (tone === "sampleGrand" && playSamplePreset("pianoGrand", t, midi, duration * 1.25, 0.3)) return;
         if (tone === "bright") makeOsc(t, freq, duration * 0.85, "sawtooth", 0.032);
         else if (tone === "acoustic") {
           makePluck(t, freq, duration * 0.65, "triangle", 0.06);
@@ -1788,6 +1896,11 @@
       if (!bars.length) return;
       createAudio();
       await audioCtx.resume();
+      try {
+        await prepareSelectedSamples(audioCtx);
+      } catch (error) {
+        showMessage("Sample sounds could not be loaded; using the built-in fallback sound.", true);
+      }
       stop(false);
       isPlaying = true;
       currentBar = Math.max(0, Math.min(bars.length - 1, Number.isInteger(startBarIndex) ? startBarIndex : 0));
@@ -2248,6 +2361,11 @@
       if (!Offline) return showMessage("OfflineAudioContext is not supported in this browser.", true);
 
       renderCtx = new Offline(2, Math.ceil(44100 * duration), 44100);
+      try {
+        await prepareSelectedSamples(renderCtx);
+      } catch (error) {
+        showMessage("Sample sounds could not be loaded for WAV; using the built-in fallback sound.", true);
+      }
       let time = 0.08;
       bars.forEach((bar, barIndex) => {
         for (let unit = 0; unit < bar.meter.units; unit++) {
