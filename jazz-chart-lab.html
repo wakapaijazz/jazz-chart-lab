@@ -1369,14 +1369,21 @@
             if (!response.ok) throw new Error(`Could not load audio sample: ${url}`);
             return response.arrayBuffer();
           })
-          .then(data => audioContext.decodeAudioData(data))
-          .then(buffer => {
-            cache.set(url, buffer);
-            return buffer;
-          });
+          .then(data => audioContext.decodeAudioData(data));
         cache.set(url, loading);
       }
-      return cache.get(url);
+      try {
+        const buffer = await cache.get(url);
+        cache.set(url, buffer);
+        return buffer;
+      } catch (error) {
+        cache.delete(url);
+        throw new Error(`Could not decode audio sample ${url}: ${error.message || error}`);
+      }
+    }
+
+    async function loadAudioSamplesInOrder(audioContext, urls) {
+      for (const url of urls) await loadAudioSample(audioContext, url);
     }
 
     function closestMappedSample(midi, samples) {
@@ -1402,18 +1409,25 @@
           });
         });
       });
-      await Promise.all([...requiredUrls].map(url => loadAudioSample(audioContext, url)));
+      await loadAudioSamplesInOrder(audioContext, requiredUrls);
     }
 
     async function prepareFingerBass(audioContext) {
-      await Promise.all(fingerBassSamples.map(sample => loadAudioSample(audioContext, sample.url)));
+      const requiredUrls = new Set();
+      bars.forEach((bar, barIndex) => {
+        bassEventPositions(bar).forEach(unit => {
+          const midi = bassMidiForUnit(barIndex, unit);
+          if (midi !== null) requiredUrls.add(fingerBassSampleFor(midi).url);
+        });
+      });
+      await loadAudioSamplesInOrder(audioContext, requiredUrls);
     }
 
     async function prepareMuldjordDrums(audioContext) {
       const urls = Object.values(muldjordDrumSamples)
         .flat()
         .map(name => `audio/muldjord-drums/${name}`);
-      await Promise.all(urls.map(url => loadAudioSample(audioContext, url)));
+      await loadAudioSamplesInOrder(audioContext, urls);
     }
 
     function playSalamanderPiano(time, midi, duration, volume) {
@@ -2014,7 +2028,7 @@
       try {
         await prepareSelectedSamples(audioCtx);
       } catch (error) {
-        showMessage("Sample sounds could not be loaded; using the built-in fallback sound.", true);
+        showMessage(`Sample sound failed to load: ${error.message || error}. Using the built-in fallback sound.`, true);
       }
       stop(false);
       isPlaying = true;
