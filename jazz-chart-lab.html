@@ -1893,26 +1893,22 @@
 
     function updateSavedList() {
       const localCharts = getSavedCharts();
-      const localNames = Object.keys(localCharts).sort((a, b) => a.localeCompare(b));
-      const bundledNames = [...bundledCharts.keys()].sort((a, b) => a.localeCompare(b));
+      const charts = [
+        ...Object.keys(localCharts).map(name => ({ name, source: "local" })),
+        ...[...bundledCharts.keys()].map(name => ({ name, source: "bundled" }))
+      ].sort((a, b) => a.name.localeCompare(b.name) || a.source.localeCompare(b.source));
       els.savedCharts.innerHTML = "";
-      if (!localNames.length && !bundledNames.length) {
+      if (!charts.length) {
         const option = document.createElement("option");
         option.value = "";
         option.textContent = "No local or bundled charts";
         els.savedCharts.appendChild(option);
         return;
       }
-      localNames.forEach(name => {
+      charts.forEach(({ name, source }) => {
         const option = document.createElement("option");
-        option.value = `local:${name}`;
-        option.textContent = `Local: ${name}`;
-        els.savedCharts.appendChild(option);
-      });
-      bundledNames.forEach(name => {
-        const option = document.createElement("option");
-        option.value = `bundled:${name}`;
-        option.textContent = `Built-in: ${name}`;
+        option.value = `${source}:${name}`;
+        option.textContent = source === "local" ? `${name} [Local]` : name;
         els.savedCharts.appendChild(option);
       });
     }
