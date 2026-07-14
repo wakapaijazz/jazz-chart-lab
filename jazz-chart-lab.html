@@ -478,7 +478,7 @@
               <option value="warmLong">Warm Electric Long</option>
               <option value="bright">Bright Keys</option>
               <option value="acoustic">Acoustic Piano</option>
-              <option value="sampleGrand">Salamander Grand Piano</option>
+              <option value="sampleGrand">Salamander Grand Piano 4-Layer</option>
               <option value="organ">Organ</option>
               <option value="pad">Sustained Pad</option>
               <option value="strings">Strings</option>
@@ -646,6 +646,8 @@
     const loadedSampleScripts = new Map();
     const preparedSampleContexts = new WeakMap();
     const decodedAudioSamples = new WeakMap();
+    const sharedDecodedAudioSamples = new Map();
+    const sampledPianoBuses = new WeakMap();
 
     const lookahead = 25;
     const scheduleAheadTime = 0.12;
@@ -659,7 +661,7 @@
         variable: "_tone_0320_GeneralUserGS_sf2_file"
       }
     };
-    const salamanderSamples = [
+    const salamanderPitches = [
       [21, "A0"],
       [24, "C1"], [27, "Ds1"], [30, "Fs1"], [33, "A1"],
       [36, "C2"], [39, "Ds2"], [42, "Fs2"], [45, "A2"],
@@ -668,7 +670,20 @@
       [72, "C5"], [75, "Ds5"], [78, "Fs5"], [81, "A5"],
       [84, "C6"], [87, "Ds6"], [90, "Fs6"], [93, "A6"],
       [96, "C7"], [99, "Ds7"], [102, "Fs7"], [105, "A7"], [108, "C8"]
-    ].map(([midi, name]) => ({ midi, url: `audio/salamander/${name}.mp3` }));
+    ].map(([midi, name]) => ({ midi, name }));
+    const salamanderVelocityLayers = [
+      { id: "v03", velocity: 24 },
+      { id: "v07", velocity: 56 },
+      { id: "v11", velocity: 88 },
+      { id: "v15", velocity: 120 }
+    ];
+    const salamanderSamples = salamanderVelocityLayers.flatMap(layer =>
+      salamanderPitches.map(pitch => ({
+        midi: pitch.midi,
+        velocity: layer.velocity,
+        url: `audio/salamander-grand/${layer.id}-${pitch.name}.mp3`
+      }))
+    );
     const fingerBassSamples = [
       [28, "E"], [29, "F"], [30, "Fsharp"], [31, "G"], [32, "Gsharp"], [33, "A"],
       [34, "Asharp"], [35, "B"], [36, "C"], [37, "Csharp"], [38, "D"], [39, "Dsharp"]
@@ -1364,16 +1379,20 @@
     async function loadAudioSample(audioContext, url) {
       const cache = sampleBufferCache(audioContext);
       if (!cache.has(url)) {
-        const loading = fetchAudioSample(url)
-          .then(data => audioContext.decodeAudioData(data));
+        const loading = sharedDecodedAudioSamples.has(url)
+          ? sharedDecodedAudioSamples.get(url)
+          : fetchAudioSample(url).then(data => audioContext.decodeAudioData(data));
         cache.set(url, loading);
+        sharedDecodedAudioSamples.set(url, loading);
       }
       try {
         const buffer = await cache.get(url);
         cache.set(url, buffer);
+        sharedDecodedAudioSamples.set(url, buffer);
         return buffer;
       } catch (error) {
         cache.delete(url);
+        sharedDecodedAudioSamples.delete(url);
         throw new Error(`Could not load audio sample ${url}: ${error.message || error}`);
       }
     }
@@ -1393,15 +1412,21 @@
       throw new Error(`Could not fetch ${url}: ${lastError?.message || lastError}`);
     }
 
-    async function loadAudioSamplesInOrder(audioContext, urls) {
+    async function loadAudioSamplesBatched(audioContext, urls) {
+      const queue = [...urls];
       const failures = [];
-      for (const url of urls) {
-        try {
-          await loadAudioSample(audioContext, url);
-        } catch (error) {
-          failures.push(error);
+      let nextIndex = 0;
+      async function worker() {
+        while (nextIndex < queue.length) {
+          const url = queue[nextIndex++];
+          try {
+            await loadAudioSample(audioContext, url);
+          } catch (error) {
+            failures.push(error);
+          }
         }
       }
+      await Promise.all(Array.from({ length: Math.min(3, queue.length) }, worker));
       return failures;
     }
 
@@ -1411,8 +1436,12 @@
       );
     }
 
-    function salamanderSampleFor(midi) {
-      return closestMappedSample(midi, salamanderSamples);
+    function salamanderSampleFor(midi, velocity) {
+      return salamanderSamples.reduce((closest, sample) => {
+        const sampleScore = Math.abs(sample.midi - midi) * 32 + Math.abs(sample.velocity - velocity) / 4;
+        const closestScore = Math.abs(closest.midi - midi) * 32 + Math.abs(closest.velocity - velocity) / 4;
+        return sampleScore < closestScore ? sample : closest;
+      });
     }
 
     function fingerBassSampleFor(midi) {
@@ -1428,16 +1457,74 @@
       return closestMappedSample(midi, loaded.length ? loaded : samples);
     }
 
-    async function prepareSalamanderPiano(audioContext) {
+    function loadedSalamanderSample(midi, velocity, audioContext) {
+      const cache = sampleBufferCache(audioContext);
+      const loaded = salamanderSamples.filter(sample => {
+        const value = cache.get(sample.url);
+        return value && typeof value.then !== "function";
+      });
+      if (!loaded.length) return salamanderSampleFor(midi, velocity);
+      return loaded.reduce((closest, sample) => {
+        const sampleScore = Math.abs(sample.midi - midi) * 32 + Math.abs(sample.velocity - velocity) / 4;
+        const closestScore = Math.abs(closest.midi - midi) * 32 + Math.abs(closest.velocity - velocity) / 4;
+        return sampleScore < closestScore ? sample : closest;
+      });
+    }
+
+    function pianoEventVelocity(bar, barIndex, unit, chordStarts) {
+      const contour = [-8, 0, 6, -3][barIndex % 4];
+      const isDownbeat = unit === 0;
+      const isAccent = bar.meter.accentUnits.includes(unit);
+      const isChordStart = chordStarts.includes(unit);
+      const base = isDownbeat ? 108 : isAccent ? 86 : isChordStart ? 67 : 42;
+      return Math.max(20, Math.min(124, base + contour));
+    }
+
+    function addPianoSamplesForEvent(requiredUrls, baseUrls, startupUrls, bar, barIndex, unit, chord, chordIndex, chordStarts) {
+      const velocity = pianoEventVelocity(bar, barIndex, unit, chordStarts);
+      const eventBaseUrls = [];
+      pianoVoicing(chord, barIndex, chordIndex).forEach(midi => {
+        requiredUrls.add(salamanderSampleFor(midi, velocity).url);
+        const baseUrl = salamanderSampleFor(midi, 88).url;
+        baseUrls.add(baseUrl);
+        eventBaseUrls.push(baseUrl);
+      });
+      if (!startupUrls.size) eventBaseUrls.forEach(url => startupUrls.add(url));
+    }
+
+    async function prepareSalamanderPiano(audioContext, complete = false) {
       const requiredUrls = new Set();
+      const baseUrls = new Set();
+      const startupUrls = new Set();
       bars.forEach((bar, barIndex) => {
-        bar.chords.forEach((chord, chordIndex) => {
-          pianoVoicing(chord, barIndex, chordIndex).forEach(midi => {
-            requiredUrls.add(salamanderSampleFor(midi).url);
-          });
+        const chordStarts = chordStartUnits(bar);
+        for (let unit = 0; unit < bar.meter.units; unit++) {
+          const chord = chordAtUnit(bar, unit);
+          const chordIndex = chordIndexAtUnit(bar, unit);
+          const shouldComp = chordStarts.includes(unit) || bar.meter.accentUnits.includes(unit) || unit === 0;
+          if (shouldComp && chord && !chord.isRest) {
+            addPianoSamplesForEvent(requiredUrls, baseUrls, startupUrls, bar, barIndex, unit, chord, chordIndex, chordStarts);
+          }
+        }
+        chordStarts.filter(start => start > 0 && !Number.isInteger(start)).forEach(start => {
+          const chord = chordAtUnit(bar, start);
+          if (chord && !chord.isRest) {
+            addPianoSamplesForEvent(requiredUrls, baseUrls, startupUrls, bar, barIndex, start, chord, chordIndexAtUnit(bar, start), chordStarts);
+          }
         });
       });
-      return loadAudioSamplesInOrder(audioContext, requiredUrls);
+      if (complete) {
+        return loadAudioSamplesBatched(audioContext, new Set([...baseUrls, ...requiredUrls]));
+      }
+
+      const failures = await loadAudioSamplesBatched(audioContext, startupUrls);
+      const backgroundUrls = new Set([...baseUrls, ...requiredUrls].filter(url => !startupUrls.has(url)));
+      if (backgroundUrls.size) {
+        loadAudioSamplesBatched(audioContext, backgroundUrls).then(backgroundFailures => {
+          if (backgroundFailures.length) console.warn(backgroundFailures[0].message);
+        });
+      }
+      return failures;
     }
 
     async function prepareFingerBass(audioContext) {
@@ -1448,34 +1535,47 @@
           if (midi !== null) requiredUrls.add(fingerBassSampleFor(midi).url);
         });
       });
-      return loadAudioSamplesInOrder(audioContext, requiredUrls);
+      return loadAudioSamplesBatched(audioContext, requiredUrls);
     }
 
     async function prepareMuldjordDrums(audioContext) {
       const urls = Object.values(muldjordDrumSamples)
         .flat()
         .map(name => `audio/muldjord-drums/${name}`);
-      return loadAudioSamplesInOrder(audioContext, urls);
+      return loadAudioSamplesBatched(audioContext, urls);
     }
 
-    function playSalamanderPiano(time, midi, duration, volume) {
+    function sampledPianoOutput(audioContext) {
+      if (sampledPianoBuses.has(audioContext)) return sampledPianoBuses.get(audioContext);
+
+      const input = audioContext.createGain();
+
+      input.gain.value = 1.12;
+      input.connect(audioContext.destination);
+      sampledPianoBuses.set(audioContext, input);
+      return input;
+    }
+
+    function playSalamanderPiano(time, midi, duration, velocity) {
       const c = ctx();
-      const sample = loadedMappedSample(midi, salamanderSamples, c);
+      const sample = loadedSalamanderSample(midi, velocity, c);
       const buffer = sampleBufferCache(c).get(sample.url);
       if (!buffer || typeof buffer.then === "function") return false;
       const source = c.createBufferSource();
       const gain = c.createGain();
-      const tail = Math.min(7.5, Math.max(1.6, duration * 1.8));
+      const sustain = Math.min(5.4, Math.max(2.35, duration * 1.8));
+      const release = 1.55;
+      const level = 0.072 + velocity / 127 * 0.055;
       source.buffer = buffer;
       source.playbackRate.setValueAtTime(2 ** ((midi - sample.midi) / 12), time);
       gain.gain.setValueAtTime(0.0001, time);
-      gain.gain.exponentialRampToValueAtTime(volume, time + 0.008);
-      gain.gain.setValueAtTime(volume, Math.max(time + 0.02, time + tail - 0.65));
-      gain.gain.exponentialRampToValueAtTime(0.0001, time + tail);
+      gain.gain.exponentialRampToValueAtTime(level, time + 0.004);
+      gain.gain.setValueAtTime(level, time + sustain);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + sustain + release);
       source.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(sampledPianoOutput(c));
       source.start(time);
-      source.stop(time + tail + 0.03);
+      source.stop(time + sustain + release + 0.05);
       return true;
     }
 
@@ -1532,9 +1632,9 @@
       await new Promise(resolve => samplePlayer.loader.waitLoad(resolve));
     }
 
-    async function prepareSelectedSamples(audioContext) {
+    async function prepareSelectedSamples(audioContext, complete = false) {
       const failures = [];
-      if (els.pianoTone.value === "sampleGrand") failures.push(...await prepareSalamanderPiano(audioContext));
+      if (els.pianoTone.value === "sampleGrand") failures.push(...await prepareSalamanderPiano(audioContext, complete));
       if (els.bassTone.value === "sampleElectric") failures.push(...await prepareFingerBass(audioContext));
       if (els.drumTone.value === "sampleStudio") failures.push(...await prepareMuldjordDrums(audioContext));
       const keys = selectedSamplePresetKeys();
@@ -1975,13 +2075,13 @@
       else makePluck(time, freq, Math.max(0.24, secondsPerUnit * bassDurationUnits(bars[barIndex])), "sawtooth", 0.14);
     }
 
-    function playPiano(time, chord, duration, barIndex, chordIndex) {
+    function playPiano(time, chord, duration, barIndex, chordIndex, velocity = 84) {
       const notes = pianoVoicing(chord, barIndex, chordIndex);
       const tone = els.pianoTone.value;
       notes.forEach((midi, i) => {
         const t = time + i * 0.006;
         const freq = midiToFreq(midi);
-        if (tone === "sampleGrand" && playSalamanderPiano(t, midi, duration, 0.36)) return;
+        if (tone === "sampleGrand" && playSalamanderPiano(t, midi, duration, velocity)) return;
         if (tone === "bright") makeOsc(t, freq, duration * 0.85, "sawtooth", 0.032);
         else if (tone === "acoustic") {
           makePluck(t, freq, duration * 0.65, "triangle", 0.06);
@@ -2001,28 +2101,32 @@
       const secondsPerUnit = unitSeconds(bar.meter);
       const chord = chordAtUnit(bar, unit);
       const chordIndex = chordIndexAtUnit(bar, unit);
+      const starts = chordStartUnits(bar);
 
       if (els.metronomeOn.checked) playMetronome(time, unit, bar);
       if (els.drumsOn.checked) playDrums(time, unit, bar, secondsPerUnit);
       if (els.bassOn.checked && bassEventPositions(bar).includes(unit)) playBass(time, barIndex, unit, secondsPerUnit);
 
       if (els.pianoOn.checked && chord && !chord.isRest) {
-        const starts = chordStartUnits(bar);
         const shouldComp = starts.includes(unit) || bar.meter.accentUnits.includes(unit) || unit === 0;
         const hasFractionalStarts = starts.some(start => !Number.isInteger(start));
         const duration = hasFractionalStarts && starts.includes(unit)
           ? secondsPerUnit * chordDurationUnits(bar, unit)
           : secondsPerUnit * 1.35;
-        if (shouldComp) playPiano(time + 0.015, chord, duration, barIndex, chordIndex);
+        if (shouldComp) {
+          const velocity = pianoEventVelocity(bar, barIndex, unit, starts);
+          playPiano(time + 0.015, chord, duration, barIndex, chordIndex, velocity);
+        }
       }
 
       if (unit === 0) {
-        const fractionalChordStarts = chordStartUnits(bar).filter(start => start > 0 && !Number.isInteger(start));
+        const fractionalChordStarts = starts.filter(start => start > 0 && !Number.isInteger(start));
         if (els.pianoOn.checked) {
           fractionalChordStarts.forEach(start => {
             const fractionalChord = chordAtUnit(bar, start);
             if (fractionalChord && !fractionalChord.isRest) {
-              playPiano(time + start * secondsPerUnit + 0.015, fractionalChord, secondsPerUnit * chordDurationUnits(bar, start), barIndex, chordIndexAtUnit(bar, start));
+              const velocity = pianoEventVelocity(bar, barIndex, start, starts);
+              playPiano(time + start * secondsPerUnit + 0.015, fractionalChord, secondsPerUnit * chordDurationUnits(bar, start), barIndex, chordIndexAtUnit(bar, start), velocity);
             }
           });
         }
@@ -2523,17 +2627,18 @@
     async function exportWav() {
       if (!refreshChart(false)) return;
       stop(true);
-      showMessage("Rendering WAV...");
-      const duration = Math.max(1, chartDurationSeconds() + 1);
+      showMessage("Loading samples for WAV...");
+      const duration = Math.max(1, chartDurationSeconds() + (els.pianoTone.value === "sampleGrand" ? 6 : 1));
       const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
       if (!Offline) return showMessage("OfflineAudioContext is not supported in this browser.", true);
 
       renderCtx = new Offline(2, Math.ceil(44100 * duration), 44100);
       try {
-        await prepareSelectedSamples(renderCtx);
+        await prepareSelectedSamples(renderCtx, true);
       } catch (error) {
         showMessage("Sample sounds could not be loaded for WAV; using the built-in fallback sound.", true);
       }
+      showMessage(`Rendering WAV (${duration.toFixed(1)} seconds)...`);
       let time = 0.08;
       bars.forEach((bar, barIndex) => {
         for (let unit = 0; unit < bar.meter.units; unit++) {
