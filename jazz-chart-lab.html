@@ -139,6 +139,41 @@
 
     input[type="range"] { width: 100%; }
 
+    .instrument-heading,
+    .volume-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .instrument-heading { margin-bottom: 8px; }
+    .instrument-heading label { margin: 0; }
+
+    .instrument-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .instrument-toggle input {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--accent);
+    }
+
+    .volume-row {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .volume-row input { min-width: 0; }
+    .volume-value { width: 38px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+
     .tempo-row {
       display: flex;
       align-items: center;
@@ -472,46 +507,72 @@
         <div class="section-label">Sounds</div>
         <div class="tone-grid">
           <div class="control">
-            <label for="pianoTone">Piano</label>
+            <div class="instrument-heading">
+              <label for="pianoTone">Piano</label>
+              <label class="instrument-toggle">On <input id="pianoOn" type="checkbox" aria-label="Piano on" checked /></label>
+            </div>
             <select id="pianoTone">
+              <option value="sampleGrand">Salamander Grand Piano 4-Layer</option>
+              <option value="acoustic">Acoustic Piano</option>
               <option value="warm">Warm Electric</option>
               <option value="warmLong">Warm Electric Long</option>
               <option value="bright">Bright Keys</option>
-              <option value="acoustic">Acoustic Piano</option>
-              <option value="sampleGrand">Salamander Grand Piano 4-Layer</option>
               <option value="organ">Organ</option>
               <option value="pad">Sustained Pad</option>
               <option value="strings">Strings</option>
               <option value="bell">Bell</option>
             </select>
+            <div class="volume-row">
+              <span>Volume</span>
+              <input id="pianoVolume" type="range" min="0" max="100" value="100" aria-label="Piano volume" />
+              <span id="pianoVolumeValue" class="volume-value">100%</span>
+            </div>
           </div>
           <div class="control">
-            <label for="drumTone">Drums</label>
+            <div class="instrument-heading">
+              <label for="drumTone">Drums</label>
+              <label class="instrument-toggle">On <input id="drumsOn" type="checkbox" aria-label="Drums on" checked /></label>
+            </div>
             <select id="drumTone">
+              <option value="sampleJazz">Muldjord Jazz Kit</option>
+              <option value="sampleFusion">Muldjord Fusion Kit</option>
+              <option value="sampleStudio">Muldjord Studio Kit</option>
               <option value="dry">Dry Kit</option>
               <option value="brush">Brush</option>
               <option value="electro">Electronic</option>
               <option value="rock">Rock Kit</option>
               <option value="arena">Arena Kit</option>
-              <option value="sampleStudio">Muldjord Studio Kit</option>
               <option value="click">Click Only</option>
             </select>
+            <div class="volume-row">
+              <span>Volume</span>
+              <input id="drumVolume" type="range" min="0" max="100" value="100" aria-label="Drums volume" />
+              <span id="drumVolumeValue" class="volume-value">100%</span>
+            </div>
           </div>
           <div class="control">
-            <label for="bassTone">Bass</label>
+            <div class="instrument-heading">
+              <label for="bassTone">Bass</label>
+              <label class="instrument-toggle">On <input id="bassOn" type="checkbox" aria-label="Bass on" checked /></label>
+            </div>
             <select id="bassTone">
+              <option value="sampleUpright">Sampled Acoustic Bass</option>
               <option value="upright">Upright</option>
               <option value="uprightLong">Upright Long</option>
+              <option value="sampleElectric">Finger Bass YR</option>
               <option value="electric">Electric</option>
               <option value="electricLong">Electric Long</option>
-              <option value="sampleUpright">Sampled Acoustic Bass</option>
-              <option value="sampleElectric">Finger Bass YR</option>
               <option value="fretless">Fretless Bass</option>
               <option value="synth">Synth Bass</option>
               <option value="sustain">Sustained Bass</option>
               <option value="sub">Sub</option>
               <option value="pluck">Pluck</option>
             </select>
+            <div class="volume-row">
+              <span>Volume</span>
+              <input id="bassVolume" type="range" min="0" max="100" value="100" aria-label="Bass volume" />
+              <span id="bassVolumeValue" class="volume-value">100%</span>
+            </div>
           </div>
           <div class="control">
             <label for="bassStyle">Bass Line</label>
@@ -525,9 +586,6 @@
 
         <div class="toggles">
           <label class="toggle">Metronome <input id="metronomeOn" type="checkbox" checked /></label>
-          <label class="toggle">Drums <input id="drumsOn" type="checkbox" checked /></label>
-          <label class="toggle">Bass <input id="bassOn" type="checkbox" checked /></label>
-          <label class="toggle">Piano <input id="pianoOn" type="checkbox" checked /></label>
         </div>
 
         <div class="button-row">
@@ -611,9 +669,15 @@
       style: document.getElementById("style"),
       meter: document.getElementById("meter"),
       pianoTone: document.getElementById("pianoTone"),
+      pianoVolume: document.getElementById("pianoVolume"),
+      pianoVolumeValue: document.getElementById("pianoVolumeValue"),
       bassTone: document.getElementById("bassTone"),
+      bassVolume: document.getElementById("bassVolume"),
+      bassVolumeValue: document.getElementById("bassVolumeValue"),
       bassStyle: document.getElementById("bassStyle"),
       drumTone: document.getElementById("drumTone"),
+      drumVolume: document.getElementById("drumVolume"),
+      drumVolumeValue: document.getElementById("drumVolumeValue"),
       metronomeOn: document.getElementById("metronomeOn"),
       drumsOn: document.getElementById("drumsOn"),
       bassOn: document.getElementById("bassOn"),
@@ -648,6 +712,7 @@
     const decodedAudioSamples = new WeakMap();
     const sharedDecodedAudioSamples = new Map();
     const sampledPianoBuses = new WeakMap();
+    const instrumentBuses = new WeakMap();
 
     const lookahead = 25;
     const scheduleAheadTime = 0.12;
@@ -690,9 +755,16 @@
     ].map(([midi, name]) => ({ midi, url: `audio/finger-bass/${name}.mp3` }));
     const muldjordDrumSamples = {
       kick: ["samples-19-KdrumL.mp3", "samples-21-KdrumL.mp3"],
-      snare: ["samples-45-Snare.mp3", "samples-48-Snare.mp3"],
+      snare: ["samples-24-Snare.mp3", "samples-32-Snare.mp3", "samples-45-Snare.mp3", "samples-48-Snare.mp3"],
       hat: ["samples-20-HihatClosed.mp3", "samples-24-HihatClosed.mp3"],
-      crash: ["samples-6-CrashL.mp3", "samples-8-CrashL.mp3"]
+      openHat: ["samples-18-HihatOpen.mp3", "samples-26-HihatOpen.mp3"],
+      ride: ["samples-4-RideL.mp3", "samples-7-RideL.mp3", "samples-10-RideL.mp3"],
+      rideBell: ["samples-2-RideLBell.mp3", "samples-3-RideLBell.mp3"],
+      crash: ["samples-6-CrashL.mp3", "samples-8-CrashL.mp3"],
+      tomHigh: ["samples-7-Tom1.mp3", "samples-11-Tom1.mp3"],
+      tomMidHigh: ["samples-8-Tom2.mp3", "samples-13-Tom2.mp3"],
+      tomMidLow: ["samples-10-Tom3.mp3", "samples-15-Tom3.mp3"],
+      tomLow: ["samples-14-Tom4.mp3", "samples-20-Tom4.mp3"]
     };
 
     const NOTE_TO_SEMITONE = {
@@ -733,6 +805,38 @@
 
     function ctx() {
       return renderCtx || audioCtx;
+    }
+
+    function instrumentVolume(kind) {
+      const control = kind === "piano" ? els.pianoVolume : kind === "bass" ? els.bassVolume : els.drumVolume;
+      return Math.max(0, Math.min(1, Number(control.value) / 100));
+    }
+
+    function instrumentOutput(kind, audioContext = ctx()) {
+      if (!instrumentBuses.has(audioContext)) instrumentBuses.set(audioContext, new Map());
+      const buses = instrumentBuses.get(audioContext);
+      if (!buses.has(kind)) {
+        const gain = audioContext.createGain();
+        gain.connect(audioContext.destination);
+        buses.set(kind, gain);
+      }
+      const bus = buses.get(kind);
+      bus.gain.value = instrumentVolume(kind);
+      return bus;
+    }
+
+    function updateInstrumentVolume(kind) {
+      const control = kind === "piano" ? els.pianoVolume : kind === "bass" ? els.bassVolume : els.drumVolume;
+      const value = kind === "piano" ? els.pianoVolumeValue : kind === "bass" ? els.bassVolumeValue : els.drumVolumeValue;
+      value.textContent = `${control.value}%`;
+      if (audioCtx && instrumentBuses.has(audioCtx)) {
+        const bus = instrumentBuses.get(audioCtx).get(kind);
+        if (bus) bus.gain.setTargetAtTime(instrumentVolume(kind), audioCtx.currentTime, 0.015);
+      }
+    }
+
+    function isSampleDrumTone(tone = els.drumTone.value) {
+      return tone === "sampleStudio" || tone === "sampleJazz" || tone === "sampleFusion";
     }
 
     function midiToFreq(midi) {
@@ -1551,7 +1655,7 @@
       const input = audioContext.createGain();
 
       input.gain.value = 1.12;
-      input.connect(audioContext.destination);
+      input.connect(instrumentOutput("piano", audioContext));
       sampledPianoBuses.set(audioContext, input);
       return input;
     }
@@ -1594,22 +1698,23 @@
       gain.gain.setValueAtTime(volume, Math.max(time + 0.03, time + tail - 0.14));
       gain.gain.exponentialRampToValueAtTime(0.0001, time + tail);
       source.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(instrumentOutput("bass", c));
       source.start(time);
       source.stop(time + tail + 0.03);
       return true;
     }
 
-    function playMuldjordDrum(kind, time, volume) {
+    function playMuldjordDrum(kind, time, volume, variation = 0) {
       const c = ctx();
       const names = muldjordDrumSamples[kind];
+      if (!names) return false;
       const cache = sampleBufferCache(c);
       const loadedNames = names.filter(name => {
         const value = cache.get(`audio/muldjord-drums/${name}`);
         return value && typeof value.then !== "function";
       });
       const availableNames = loadedNames.length ? loadedNames : names;
-      const name = availableNames[Math.floor(Math.random() * availableNames.length)];
+      const name = availableNames[Math.abs(Math.round(variation)) % availableNames.length];
       const buffer = cache.get(`audio/muldjord-drums/${name}`);
       if (!buffer || typeof buffer.then === "function") return false;
       const source = c.createBufferSource();
@@ -1617,7 +1722,7 @@
       source.buffer = buffer;
       gain.gain.setValueAtTime(volume, time);
       source.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(instrumentOutput("drums", c));
       source.start(time);
       return true;
     }
@@ -1636,7 +1741,7 @@
       const failures = [];
       if (els.pianoTone.value === "sampleGrand") failures.push(...await prepareSalamanderPiano(audioContext, complete));
       if (els.bassTone.value === "sampleElectric") failures.push(...await prepareFingerBass(audioContext));
-      if (els.drumTone.value === "sampleStudio") failures.push(...await prepareMuldjordDrums(audioContext));
+      if (isSampleDrumTone()) failures.push(...await prepareMuldjordDrums(audioContext));
       const keys = selectedSamplePresetKeys();
       if (!keys.length) return failures;
       const previous = preparedSampleContexts.get(audioContext) || new Set();
@@ -1664,7 +1769,8 @@
           // Some browsers already treat OfflineAudioContext.resume as a no-op.
         }
       }
-      samplePlayer.queueWaveTable(c, c.destination, preset, time, midi, Math.max(0.04, duration), volume);
+      const destination = key === "bassAcoustic" ? instrumentOutput("bass", c) : c.destination;
+      samplePlayer.queueWaveTable(c, destination, preset, time, midi, Math.max(0.04, duration), volume);
       return true;
     }
 
@@ -1685,7 +1791,7 @@
       osc.stop(time + duration + 0.03);
     }
 
-    function makeSustainedOsc(time, freq, duration, type, gainValue, attack = 0.035, release = 0.18) {
+    function makeSustainedOsc(time, freq, duration, type, gainValue, attack = 0.035, release = 0.18, destination = null) {
       const c = ctx();
       const osc = c.createOscillator();
       const gain = c.createGain();
@@ -1700,12 +1806,12 @@
       gain.gain.linearRampToValueAtTime(0.0001, end);
 
       osc.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(destination || c.destination);
       osc.start(time);
       osc.stop(end + 0.03);
     }
 
-    function noiseBurst(time, duration, gainValue, filterFreq, filterType = "highpass") {
+    function noiseBurst(time, duration, gainValue, filterFreq, filterType = "highpass", destination = null) {
       const c = ctx();
       const bufferSize = Math.max(1, Math.floor(c.sampleRate * duration));
       const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
@@ -1723,12 +1829,12 @@
 
       source.connect(filter);
       filter.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(destination || c.destination);
       source.start(time);
       source.stop(time + duration);
     }
 
-    function makePluck(time, freq, duration, type, gainValue) {
+    function makePluck(time, freq, duration, type, gainValue, destination = null) {
       const c = ctx();
       const osc = c.createOscillator();
       const filter = c.createBiquadFilter();
@@ -1743,22 +1849,22 @@
       gain.gain.exponentialRampToValueAtTime(0.0001, time + duration);
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(destination || c.destination);
       osc.start(time);
       osc.stop(time + duration + 0.03);
     }
 
-    function playMetronome(time, unit, bar) {
+    function playMetronome(time, unit, bar, destination = null) {
       const strong = unit === 0;
       const secondary = bar.meter.accentUnits.includes(unit);
       const freq = strong ? 1320 : secondary ? 1080 : 760;
-      makeOsc(time, freq, 0.045, "sine", strong ? 0.18 : secondary ? 0.12 : 0.07);
+      makeOsc(time, freq, 0.045, "sine", strong ? 0.18 : secondary ? 0.12 : 0.07, destination);
     }
 
-    function playKick(time) {
+    function playKick(time, variation = 0) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playMuldjordDrum("kick", time, 0.74)) return;
+      if (isSampleDrumTone(tone) && playMuldjordDrum("kick", time, tone === "sampleJazz" ? 0.48 : 0.7, variation)) return;
       const c = ctx();
       const osc = c.createOscillator();
       const gain = c.createGain();
@@ -1768,56 +1874,121 @@
       gain.gain.setValueAtTime(tone === "brush" ? 0.28 : 0.5, time);
       gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.14);
       osc.connect(gain);
-      gain.connect(c.destination);
+      gain.connect(instrumentOutput("drums", c));
       osc.start(time);
       osc.stop(time + 0.16);
     }
 
-    function playSnare(time) {
+    function playSnare(time, variation = 0, strong = false) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playMuldjordDrum("snare", time, 0.72)) return;
+      if (isSampleDrumTone(tone) && playMuldjordDrum("snare", time, strong ? 0.66 : 0.42, strong ? variation + 2 : variation)) return;
+      const destination = instrumentOutput("drums");
       if (tone === "brush") {
-        noiseBurst(time, 0.14, 0.12, 1800);
+        noiseBurst(time, 0.14, 0.12, 1800, "highpass", destination);
       } else if (tone === "electro") {
-        noiseBurst(time, 0.07, 0.16, 1800);
-        makeOsc(time, 220, 0.06, "square", 0.04);
+        noiseBurst(time, 0.07, 0.16, 1800, "highpass", destination);
+        makeOsc(time, 220, 0.06, "square", 0.04, destination);
       } else {
-        noiseBurst(time, 0.09, 0.2, 900);
-        makeOsc(time, 180, 0.08, "triangle", 0.045);
+        noiseBurst(time, 0.09, 0.2, 900, "highpass", destination);
+        makeOsc(time, 180, 0.08, "triangle", 0.045, destination);
       }
     }
 
-    function playHat(time, strong = false) {
+    function playHat(time, strong = false, variation = 0) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playMuldjordDrum("hat", time, strong ? 0.44 : 0.3)) return;
+      if (isSampleDrumTone(tone) && playMuldjordDrum("hat", time, strong ? 0.36 : 0.24, variation)) return;
       const gain = tone === "brush" ? 0.04 : tone === "electro" ? 0.09 : tone === "rock" || tone === "arena" ? 0.085 : 0.065;
-      noiseBurst(time, tone === "brush" ? 0.08 : 0.045, strong ? gain * 1.55 : gain, tone === "brush" ? 3000 : 5000);
+      noiseBurst(time, tone === "brush" ? 0.08 : 0.045, strong ? gain * 1.55 : gain, tone === "brush" ? 3000 : 5000, "highpass", instrumentOutput("drums"));
     }
 
-    function playCrash(time, strong = false) {
+    function playOpenHat(time, strong = false, variation = 0) {
+      if (isSampleDrumTone() && playMuldjordDrum("openHat", time, strong ? 0.34 : 0.25, variation)) return;
+      noiseBurst(time, 0.22, strong ? 0.11 : 0.075, 4600, "highpass", instrumentOutput("drums"));
+    }
+
+    function playRide(time, strong = false, variation = 0) {
+      if (isSampleDrumTone() && playMuldjordDrum("ride", time, strong ? 0.31 : 0.22, variation)) return;
+      noiseBurst(time, 0.34, strong ? 0.11 : 0.075, 6200, "highpass", instrumentOutput("drums"));
+    }
+
+    function playRideBell(time, strong = false, variation = 0) {
+      if (isSampleDrumTone() && playMuldjordDrum("rideBell", time, strong ? 0.34 : 0.25, variation)) return;
+      makeOsc(time, 760, 0.26, "triangle", strong ? 0.045 : 0.03, instrumentOutput("drums"));
+    }
+
+    function playCrash(time, strong = false, variation = 0) {
       const tone = els.drumTone.value;
       if (tone === "click") return;
-      if (tone === "sampleStudio" && playMuldjordDrum("crash", time, strong ? 0.52 : 0.36)) return;
+      if (isSampleDrumTone(tone) && playMuldjordDrum("crash", time, strong ? 0.44 : 0.31, variation)) return;
       const gain = tone === "arena" ? 0.2 : 0.15;
-      noiseBurst(time, strong ? 0.55 : 0.38, gain, 7200);
-      makeOsc(time, tone === "arena" ? 420 : 520, 0.22, "triangle", strong ? 0.025 : 0.016);
+      const destination = instrumentOutput("drums");
+      noiseBurst(time, strong ? 0.55 : 0.38, gain, 7200, "highpass", destination);
+      makeOsc(time, tone === "arena" ? 420 : 520, 0.22, "triangle", strong ? 0.025 : 0.016, destination);
     }
 
-    function drumPatternEvents(unit, bar) {
+    function playTom(kind, time, strong = false, variation = 0) {
+      if (isSampleDrumTone() && playMuldjordDrum(kind, time, strong ? 0.55 : 0.4, variation)) return;
+      const pitches = { tomHigh: 190, tomMidHigh: 155, tomMidLow: 125, tomLow: 96 };
+      makeOsc(time, pitches[kind] || 120, 0.18, "sine", strong ? 0.16 : 0.11, instrumentOutput("drums"));
+    }
+
+    function isSectionEndBar(barIndex) {
+      return barIndex >= bars.length - 1 || Boolean(bars[barIndex + 1]?.section);
+    }
+
+    function drumPatternEvents(unit, bar, barIndex = 0) {
       const style = els.style.value;
+      const tone = els.drumTone.value;
       const accent = bar.meter.accentUnits.includes(unit);
       const events = [];
-      const add = (kind, offset = 0, strong = false) => events.push({ kind, offset, strong });
-
-      if (els.drumTone.value === "click") {
-        add("click", 0, unit === 0 || accent);
+      const variation = Math.abs((barIndex * 17 + style.length * 5 + bar.meter.units) % 4);
+      const add = (kind, offset = 0, strong = false, variant = variation + unit) => events.push({ kind, offset, strong, variation: variant });
+      const finish = () => {
+        if (isSampleDrumTone(tone) && isSectionEndBar(barIndex) && unit === bar.meter.units - 1) {
+          const fill = tone === "sampleJazz"
+            ? [["snare", 0.12], ["tomMidHigh", 0.46], ["tomLow", 0.78]]
+            : [["tomHigh", 0.08], ["tomMidHigh", 0.32], ["tomMidLow", 0.57], ["tomLow", 0.82]];
+          fill.forEach(([kind, offset], index) => add(kind, offset, index === fill.length - 1, variation + index));
+        }
         return events;
+      };
+
+      if (tone === "click") {
+        add("click", 0, unit === 0 || accent);
+        return finish();
       }
 
-      if (els.drumTone.value === "rock" || els.drumTone.value === "arena") {
-        const arena = els.drumTone.value === "arena";
+      if (tone === "sampleJazz" && style === "swing" && bar.meter.denominator === 4) {
+        if (unit === 0) add("kick", 0, true);
+        if (unit % 2 === 1) add("hat", 0, true);
+        add("ride", 0, unit === 0 || accent);
+        add("ride", 2 / 3, false, variation + unit + 1);
+        if ((variation === 1 && unit === 2) || (variation === 3 && unit === 3)) add("snare", 0.35, false);
+        if (variation === 2 && unit === 2) add("kick", 0.5, false);
+        if (unit === 0 && bar.section && barIndex > 0) add("rideBell", 0, true);
+        return finish();
+      }
+
+      if (tone === "sampleFusion" && bar.meter.denominator === 4) {
+        if (unit === 0 || (unit === 2 && variation !== 1)) add("kick", 0, unit === 0);
+        if (unit === 1 || unit === 3) add("snare", 0, true);
+        if (variation === 1 && unit === 2) add("kick", 0.5, false);
+        if (variation === 2 && unit === 3) add("kick", 0.75, false);
+        add("hat", 0, accent);
+        add("hat", 0.5, false, variation + unit + 1);
+        if (style === "sixteenth" || variation === 3) {
+          add("hat", 0.25, false, variation + 2);
+          add(unit === 3 ? "openHat" : "hat", 0.75, false, variation + 3);
+        }
+        if (unit === 0 && bar.section && barIndex > 0) add("crash", 0, true);
+        if (variation === 0 && unit === 2) add("rideBell", 0.5, false);
+        return finish();
+      }
+
+      if (tone === "rock" || tone === "arena") {
+        const arena = tone === "arena";
         if (unit === 0) {
           add("kick", 0, true);
           add("crash", 0, true);
@@ -1834,7 +2005,7 @@
           add("hat", 0, unit === 0 || accent);
           if (arena && accent && unit !== 0) add("crash", 0, false);
         }
-        return events;
+        return finish();
       }
 
       if (style === "bossa") {
@@ -1844,7 +2015,8 @@
         if (bar.meter.denominator === 8 && accent && unit !== 0) add("snare", 0, false);
         add("hat", 0, accent);
         if (bar.meter.denominator === 4) add("hat", 0.5, false);
-        return events;
+        if (variation === 2 && unit === 2) add("snare", 0.5, false);
+        return finish();
       }
 
       if (style === "latin") {
@@ -1854,7 +2026,8 @@
         if (bar.meter.denominator === 8 && accent && unit !== 0) add("snare", 0, false);
         add("hat", 0, accent);
         if (bar.meter.denominator === 4) add("hat", 0.5, false);
-        return events;
+        if (variation === 1 && unit === 3) add("kick", 0.75, false);
+        return finish();
       }
 
       if (style === "sixteenth") {
@@ -1868,7 +2041,8 @@
         } else {
           add("hat", 0.5, false);
         }
-        return events;
+        if (variation === 3 && unit === 3) add("openHat", 0.75, false);
+        return finish();
       }
 
       if (style === "hiphop") {
@@ -1881,7 +2055,8 @@
           add("hat", 0.5, false);
           if (unit % 2 === 0) add("hat", 0.75, false);
         }
-        return events;
+        if (variation === 1 && unit === 1) add("snare", 0.75, false);
+        return finish();
       }
 
       if (style === "swing" && bar.meter.denominator === 4) {
@@ -1890,7 +2065,8 @@
         if (unit % 2 === 1) add("snare", 0, true);
         add("hat", 0, accent);
         add("hat", 2 / 3, false);
-        return events;
+        if (variation === 0 && unit === 2) add("snare", 0.35, false);
+        return finish();
       }
 
       if (unit === 0) add("kick", 0, true);
@@ -1899,19 +2075,24 @@
       if (bar.meter.denominator === 8 && accent && unit !== 0) add("snare", 0, true);
       add("hat", 0, accent);
       if (bar.meter.denominator === 4) add("hat", 0.5, false);
-      return events;
+      if (variation === 2 && unit === 2) add("kick", 0.5, false);
+      return finish();
     }
 
     function playDrumEvent(event, time) {
-      if (event.kind === "click") return playMetronome(time, event.strong ? 0 : 1, { meter: { accentUnits: event.strong ? [0] : [] } });
-      if (event.kind === "kick") return playKick(time);
-      if (event.kind === "snare") return playSnare(time);
-      if (event.kind === "hat") return playHat(time, event.strong);
-      if (event.kind === "crash") return playCrash(time, event.strong);
+      if (event.kind === "click") return playMetronome(time, event.strong ? 0 : 1, { meter: { accentUnits: event.strong ? [0] : [] } }, instrumentOutput("drums"));
+      if (event.kind === "kick") return playKick(time, event.variation);
+      if (event.kind === "snare") return playSnare(time, event.variation, event.strong);
+      if (event.kind === "hat") return playHat(time, event.strong, event.variation);
+      if (event.kind === "openHat") return playOpenHat(time, event.strong, event.variation);
+      if (event.kind === "ride") return playRide(time, event.strong, event.variation);
+      if (event.kind === "rideBell") return playRideBell(time, event.strong, event.variation);
+      if (event.kind === "crash") return playCrash(time, event.strong, event.variation);
+      if (event.kind.startsWith("tom")) return playTom(event.kind, time, event.strong, event.variation);
     }
 
-    function playDrums(time, unit, bar, secondsPerUnit) {
-      drumPatternEvents(unit, bar).forEach(event => {
+    function playDrums(time, unit, bar, barIndex, secondsPerUnit) {
+      drumPatternEvents(unit, bar, barIndex).forEach(event => {
         playDrumEvent(event, time + event.offset * secondsPerUnit);
       });
     }
@@ -2062,37 +2243,39 @@
       const freq = midiToFreq(midi);
       const tone = els.bassTone.value;
       const duration = Math.max(0.18, secondsPerUnit * bassDurationUnits(bars[barIndex]));
+      const destination = instrumentOutput("bass");
       if (tone === "sampleUpright" && playSamplePreset("bassAcoustic", time, midi, duration * 1.08, 0.7)) return;
       if (tone === "sampleElectric" && playFingerBass(time, midi, duration, 0.7)) return;
-      if (tone === "sub") makeSustainedOsc(time, freq, duration, "sine", 0.15, 0.02, 0.08);
-      else if (tone === "sustain") makeSustainedOsc(time, freq, duration, "triangle", 0.14, 0.015, 0.1);
-      else if (tone === "uprightLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.12, 0.018, 0.16);
-      else if (tone === "electricLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.115, 0.012, 0.12);
-      else if (tone === "fretless") makeSustainedOsc(time, freq, duration * 1.2, "triangle", 0.13, 0.02, 0.13);
-      else if (tone === "synth") makeSustainedOsc(time, freq, duration, "square", 0.1, 0.008, 0.07);
-      else if (tone === "electric") makePluck(time, freq, duration, "sawtooth", 0.13);
-      else if (tone === "pluck") makePluck(time, freq, 0.16, "square", 0.11);
-      else makePluck(time, freq, Math.max(0.24, secondsPerUnit * bassDurationUnits(bars[barIndex])), "sawtooth", 0.14);
+      if (tone === "sub") makeSustainedOsc(time, freq, duration, "sine", 0.15, 0.02, 0.08, destination);
+      else if (tone === "sustain") makeSustainedOsc(time, freq, duration, "triangle", 0.14, 0.015, 0.1, destination);
+      else if (tone === "uprightLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.12, 0.018, 0.16, destination);
+      else if (tone === "electricLong") makeSustainedOsc(time, freq, secondsPerUnit * bassDurationUnits(bars[barIndex]) * 1.1, "sawtooth", 0.115, 0.012, 0.12, destination);
+      else if (tone === "fretless") makeSustainedOsc(time, freq, duration * 1.2, "triangle", 0.13, 0.02, 0.13, destination);
+      else if (tone === "synth") makeSustainedOsc(time, freq, duration, "square", 0.1, 0.008, 0.07, destination);
+      else if (tone === "electric") makePluck(time, freq, duration, "sawtooth", 0.13, destination);
+      else if (tone === "pluck") makePluck(time, freq, 0.16, "square", 0.11, destination);
+      else makePluck(time, freq, Math.max(0.24, secondsPerUnit * bassDurationUnits(bars[barIndex])), "sawtooth", 0.14, destination);
     }
 
     function playPiano(time, chord, duration, barIndex, chordIndex, velocity = 84) {
       const notes = pianoVoicing(chord, barIndex, chordIndex);
       const tone = els.pianoTone.value;
+      const destination = instrumentOutput("piano");
       notes.forEach((midi, i) => {
         const t = time + i * 0.006;
         const freq = midiToFreq(midi);
         if (tone === "sampleGrand" && playSalamanderPiano(t, midi, duration, velocity)) return;
-        if (tone === "bright") makeOsc(t, freq, duration * 0.85, "sawtooth", 0.032);
+        if (tone === "bright") makeOsc(t, freq, duration * 0.85, "sawtooth", 0.032, destination);
         else if (tone === "acoustic") {
-          makePluck(t, freq, duration * 0.65, "triangle", 0.06);
-          makeOsc(t, freq * 2, duration * 0.25, "sine", 0.012);
+          makePluck(t, freq, duration * 0.65, "triangle", 0.06, destination);
+          makeOsc(t, freq * 2, duration * 0.25, "sine", 0.012, destination);
         }
-        else if (tone === "warmLong") makeSustainedOsc(t, freq, duration * 1.8, "triangle", 0.04, 0.04, 0.48);
-        else if (tone === "organ") makeSustainedOsc(t, freq, duration * 1.35, "square", 0.022, 0.02, 0.22);
-        else if (tone === "pad") makeSustainedOsc(t, freq, duration * 1.8, "sine", 0.035, 0.16, 0.45);
-        else if (tone === "strings") makeSustainedOsc(t, freq, duration * 1.9, "sawtooth", 0.028, 0.11, 0.42);
-        else if (tone === "bell") makeOsc(t, freq, duration * 0.6, "sine", 0.045);
-        else makeSustainedOsc(t, freq, duration * 1.1, "triangle", 0.042, 0.025, 0.2);
+        else if (tone === "warmLong") makeSustainedOsc(t, freq, duration * 1.8, "triangle", 0.04, 0.04, 0.48, destination);
+        else if (tone === "organ") makeSustainedOsc(t, freq, duration * 1.35, "square", 0.022, 0.02, 0.22, destination);
+        else if (tone === "pad") makeSustainedOsc(t, freq, duration * 1.8, "sine", 0.035, 0.16, 0.45, destination);
+        else if (tone === "strings") makeSustainedOsc(t, freq, duration * 1.9, "sawtooth", 0.028, 0.11, 0.42, destination);
+        else if (tone === "bell") makeOsc(t, freq, duration * 0.6, "sine", 0.045, destination);
+        else makeSustainedOsc(t, freq, duration * 1.1, "triangle", 0.042, 0.025, 0.2, destination);
       });
     }
 
@@ -2104,7 +2287,7 @@
       const starts = chordStartUnits(bar);
 
       if (els.metronomeOn.checked) playMetronome(time, unit, bar);
-      if (els.drumsOn.checked) playDrums(time, unit, bar, secondsPerUnit);
+      if (els.drumsOn.checked) playDrums(time, unit, bar, barIndex, secondsPerUnit);
       if (els.bassOn.checked && bassEventPositions(bar).includes(unit)) playBass(time, barIndex, unit, secondsPerUnit);
 
       if (els.pianoOn.checked && chord && !chord.isRest) {
@@ -2242,9 +2425,12 @@
         style: els.style.value,
         meter: els.meter.value,
         pianoTone: els.pianoTone.value,
+        pianoVolume: Number(els.pianoVolume.value),
         bassTone: els.bassTone.value,
+        bassVolume: Number(els.bassVolume.value),
         bassStyle: els.bassStyle.value,
         drumTone: els.drumTone.value,
+        drumVolume: Number(els.drumVolume.value),
         toggles: {
           metronome: els.metronomeOn.checked,
           drums: els.drumsOn.checked,
@@ -2263,10 +2449,16 @@
       els.tempoValue.textContent = els.tempo.value;
       els.style.value = data.style || "swing";
       els.meter.value = data.meter || "4/4";
-      els.pianoTone.value = data.pianoTone || "warm";
-      els.bassTone.value = data.bassTone || "upright";
+      els.pianoTone.value = data.pianoTone || "sampleGrand";
+      els.pianoVolume.value = String(data.pianoVolume ?? 100);
+      els.bassTone.value = data.bassTone || "sampleUpright";
+      els.bassVolume.value = String(data.bassVolume ?? 100);
       els.bassStyle.value = data.bassStyle || "walking";
-      els.drumTone.value = data.drumTone || "dry";
+      els.drumTone.value = data.drumTone || "sampleJazz";
+      els.drumVolume.value = String(data.drumVolume ?? 100);
+      updateInstrumentVolume("piano");
+      updateInstrumentVolume("bass");
+      updateInstrumentVolume("drums");
       if (data.toggles) {
         els.metronomeOn.checked = data.toggles.metronome !== false;
         els.drumsOn.checked = data.toggles.drums !== false;
@@ -2396,8 +2588,19 @@
       if (event.kind === "kick") return 36;
       if (event.kind === "snare") return 38;
       if (event.kind === "click") return 37;
+      if (event.kind === "openHat") return 46;
+      if (event.kind === "ride") return 51;
+      if (event.kind === "rideBell") return 53;
       if (event.kind === "crash") return 49;
-      return event.strong ? 42 : 44;
+      if (event.kind === "tomHigh") return 50;
+      if (event.kind === "tomMidHigh") return 48;
+      if (event.kind === "tomMidLow") return 47;
+      if (event.kind === "tomLow") return 45;
+      return 42;
+    }
+
+    function midiVelocity(base, instrument) {
+      return Math.max(0, Math.min(127, Math.round(base * instrumentVolume(instrument))));
     }
 
     function collectArrangementEvents() {
@@ -2418,22 +2621,22 @@
 
           if (els.pianoOn.checked && chord && !chord.isRest && (starts.includes(unit) || accent || unit === 0)) {
             pianoVoicing(chord, barIndex, chordIndex).forEach((note, i) => {
-              events.piano.push({ tick: ticks + Math.round(i * 3), note, dur: Math.round(tickPerUnit * 1.25), vel: 68 });
+              events.piano.push({ tick: ticks + Math.round(i * 3), note, dur: Math.round(tickPerUnit * 1.25), vel: midiVelocity(68, "piano") });
             });
           }
 
           if (els.bassOn.checked && bassEventPositions(bar).includes(unit)) {
             const bass = bassMidiForUnit(barIndex, unit);
-            if (bass !== null) events.bass.push({ tick: ticks, note: bass, dur: Math.round(tickPerUnit * bassDurationUnits(bar)), vel: 82 });
+            if (bass !== null) events.bass.push({ tick: ticks, note: bass, dur: Math.round(tickPerUnit * bassDurationUnits(bar)), vel: midiVelocity(82, "bass") });
           }
 
           if (els.drumsOn.checked) {
-            drumPatternEvents(unit, bar).forEach(event => {
+            drumPatternEvents(unit, bar, barIndex).forEach(event => {
               events.drums.push({
                 tick: ticks + Math.round(event.offset * tickPerUnit),
                 note: drumMidiNote(event),
                 dur: event.kind === "hat" ? 35 : 80,
-                vel: event.strong ? 88 : event.kind === "hat" ? 52 : 70
+                vel: midiVelocity(event.strong ? 88 : event.kind === "hat" || event.kind === "ride" ? 52 : 70, "drums")
               });
             });
           }
@@ -2452,7 +2655,7 @@
                 tick: barStartTick + Math.round(start * tickPerUnit) + Math.round(i * 3),
                 note,
                 dur: Math.round(chordDurationUnits(bar, start) * tickPerUnit),
-                vel: 68
+                vel: midiVelocity(68, "piano")
               });
             });
           });
@@ -2465,7 +2668,7 @@
                 tick: barStartTick + Math.round(position * tickPerUnit),
                 note: bass,
                 dur: Math.round(tickPerUnit * bassDurationUnits(bar)),
-                vel: 82
+                vel: midiVelocity(82, "bass")
               });
             }
           });
@@ -2661,6 +2864,11 @@
 
     els.tempo.addEventListener("input", () => {
       els.tempoValue.textContent = els.tempo.value;
+    });
+
+    [["piano", els.pianoVolume], ["bass", els.bassVolume], ["drums", els.drumVolume]].forEach(([kind, control]) => {
+      control.addEventListener("input", () => updateInstrumentVolume(kind));
+      updateInstrumentVolume(kind);
     });
 
     els.input.addEventListener("input", () => {

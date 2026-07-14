@@ -16,8 +16,9 @@ following additional sample presets on demand when a sampled tone is selected.
   Source: https://freepats.zenvoid.org/ElectricGuitar/clean-electric-bass.html
   Author: Andrea Biasior.
   License: CC0 1.0 Universal.
-- MuldjordKit: selected kick, snare, closed hi-hat, and crash samples for the
-  `Muldjord Studio Kit` tone.
+- MuldjordKit: selected kick, snare, closed/open hi-hat, ride, ride bell, crash,
+  and four tom samples for the `Muldjord Jazz Kit`, `Muldjord Fusion Kit`, and
+  `Muldjord Studio Kit` tones.
   Source: https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html
   Recorded by Lars Muldjord; assembled for FreePats by Roberto.
   License: Creative Commons Attribution 4.0 International.
